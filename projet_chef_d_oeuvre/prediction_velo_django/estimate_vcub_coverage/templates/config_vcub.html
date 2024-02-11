@@ -1,0 +1,377 @@
+{% extends 'base.html' %}
+{% block title %}
+Créer une configuration VCUB
+{% endblock %}
+{% block content %}
+
+<div class="col-md-10 bg-light p-3">
+  <div class="form-group row">
+
+    <div class="col-md-6" style="display: flex; flex-direction: column;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <label for="vcubSelect" style="margin-right: 10px;">Choisissez votre configuration VCUB de départ :</label>
+        <select class="form-control" id="vcubSelect" onchange="updateIframe(this.value)" style="width: auto;">
+          {% for file in vcub_files %}
+            {% if file == "vcubDefault" %}
+              <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
+            {% else %}
+              <option value="{{ file }}">{{ file }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+        <button id="validateButton" onclick="validateSelection()">Valider</button>
+        <button id="resetButton" onclick="resetSelection()" disabled>Réinitialiser</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="shapefile-table-container"></div>
+
+  <div id="map" style="height: 500px; margin-top: 10px;"></div>
+
+  <div style="display: flex; justify-content: center; padding-top: 10px;">
+    <input type="text" id="filename" placeholder="Entrer un nom">
+    <button class="btn btn-success" onclick="saveShapefile()">Sauvegarder</button>
+  </div>
+
+</div>
+
+<link href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/tabulator.min.css" rel="stylesheet">
+<script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+
+<style>
+.leaflet-popup-close-button {
+  display: none;
+}
+</style>
+
+
+<script>
+
+$(document).ready(function() {
+  var vcubDir = '/media/saved/vcub_config';
+  $('#vcubSelect').change(function() {
+    var selectedOption = $(this).val();
+  });
+});
+
+function validateSelection() {
+  console.log("validateSelection function called");
+  var selectedOption = $('#vcubSelect').val();
+  var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+  $.ajax({
+    url: '/copy_directory/',  // URL of the Django view
+    type: 'POST',
+    data: {
+      'directory': 'media/saved/vcub_config/' + selectedOption,
+      'csrfmiddlewaretoken': csrftoken
+    },
+    success: function(response) {
+      // handle success
+      console.log(response);
+      // Load shapefile data when the selection is validated
+      loadShapefileData(selectedOption);
+    },
+    error: function(error) {
+      // handle error
+      console.log(error);
+    }
+  });
+  document.getElementById('vcubSelect').disabled = true;
+  document.getElementById('validateButton').disabled = true;
+  document.getElementById('resetButton').disabled = false;
+}
+
+function resetSelection() {
+  location.reload();
+}
+
+var table = new Tabulator("#shapefile-table-container", {
+  height: "200px",
+  layout: "fitColumns",
+  placeholder: "Veuillez sélectionner une configuration existante",
+
+  rowAdded: function(row) {
+    // Remove highlight from previously highlighted row
+    if (highlightedRow) {
+      highlightedRow.getElement().style.backgroundColor = '';
+    }
+    // Highlight the new row
+    highlightedRow = row;
+    highlightedRow.getElement().style.backgroundColor = '#A6A6DF';
+  },
+  dataChanged:function(data){
+  // Clear the GeoJSON layer
+  geojsonLayer.clearLayers();
+
+  // Add all points in the table to the GeoJSON layer
+  data.forEach(rowData => {
+    if (!rowData.status) { // if status is not set, it's an existing point
+      rowData.status = 'existing';
+    } else if (rowData.status === 'existing') { // if status is existing, it's been modified
+      rowData.status = 'modified';
+    }
+
+    var geojsonFeature = {
+      type: "Feature",
+      properties: rowData,
+      geometry: {
+        type: rowData.type,
+        coordinates: rowData.coordinates
+      }
+    };
+
+    geojsonLayer.addData(geojsonFeature);
+    });
+  },
+  cellEdited:function(cell) {
+    // Get the row data
+    var rowData = cell.getRow().getData();
+
+    // If the point is not new, mark it as modified
+    if (rowData.status !== 'new') {
+      rowData.status = 'modified';
+    }
+
+    // Update the GeoJSON layer
+    geojsonLayer.clearLayers();
+    table.getData().forEach(rowData => {
+      var geojsonFeature = {
+        type: "Feature",
+        properties: rowData,
+        geometry: {
+          type: rowData.type,
+          coordinates: rowData.coordinates
+        }
+      };
+      geojsonLayer.addData(geojsonFeature);
+    });
+  },
+});
+
+var highlightedRow;
+
+function loadShapefileData(directory) {
+  $.ajax({
+    url: '/get_shapefile_data/',
+    type: 'GET',
+    data: {
+      'directory': directory
+    },
+    success: function(data) {
+      // Update table data
+      table.setData(data.features.map(feature => ({...feature.properties, ...feature.geometry})));
+
+      // Define table columns based on data
+      if (data.features.length > 0) {
+        var columns = Object.keys(data.features[0].properties).map(key => {
+          if (key === 'id') {
+            return { title: key, field: key, editor: false, visible: true };
+          } else {
+            return { title: key, field: key, editor: "input" };
+          }
+        });
+
+        // Add geometry columns
+        if (data.features[0].geometry) {
+          Object.keys(data.features[0].geometry).forEach(key => {
+            if (key == 'coordinates') { // Exclude 'type' column from being displayed
+            columns.push({ title: key, field: key, editor: false });
+          } else { // Include 'type' column in data but hide it
+            columns.push({ title: key, field: key, editor: false, visible: false });
+          }
+          });
+        }
+
+        // Add a column with a delete button
+        columns.push({ formatter: "buttonCross", align: "center", title: "", width: 40, cellClick: function(e, cell) {
+          cell.getRow().delete();
+        } });
+
+        table.setColumns(columns);
+      }
+      table.options.dataChanged(table.getData());
+      map.fitBounds(geojsonLayer.getBounds());
+
+    },
+    error: function(error) {
+      console.log(error);
+    }
+  });
+}
+
+// Initialize the Leaflet map
+var map = L.map("map").setView([0, 0], 13);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+}).addTo(map);
+
+// Create an empty GeoJSON layer
+var geojsonLayer = L.geoJSON(null, {
+  pointToLayer: function (feature, latlng) {
+    var color;
+    if (feature.properties.status === 'new') {
+      color = "#3399FF"; // blue for new points
+    } else if (feature.properties.status === 'modified') {
+      color = "#00FF00"; // green for modified points
+    } else {
+      color = "#FF3333"; // red for existing points
+    }
+
+    return L.circleMarker(latlng, {
+      radius: 4,
+      fillColor: color,
+      color: "#000",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.8
+    }).on('mouseover', function () {
+      // Display info of point in a box when hovered
+      var popupContent = '';
+      for (var key in feature.properties) {
+        if (key !== 'id' && key !== 'type' && key !== 'status') {
+          var value = feature.properties[key];
+          if (key === 'coordinates' && Array.isArray(value)) {
+            value = value.map(coord => parseFloat(coord.toFixed(2)));
+          }
+          popupContent += key + ': ' + value + '<br>';
+        }
+      }
+      this.bindPopup(popupContent).openPopup();
+    }).on('mouseout', function () {
+      // Close the popup when the mouse is no longer hovering over the point
+      this.closePopup();
+    }).on('click', function () {
+      // Scroll to and highlight corresponding row in table when clicked
+      if (highlightedRow) {
+        highlightedRow.getElement().style.backgroundColor = '';
+      }
+      highlightedRow = table.getRow(feature.properties.id);
+      highlightedRow.getElement().style.backgroundColor = '#A6A6DF';
+      table.scrollToRow(highlightedRow, "top", true);
+    });
+  }
+}).addTo(map);
+
+
+// Add a click event to the map
+map.on("click", function (e) {
+  var maxId = Math.max(...table.getData().map(row => row.id), 0);
+  var newRowData = {
+    id: maxId + 1,
+    type: 'Point',
+    coordinates: [e.latlng.lng, e.latlng.lat],
+    status: 'new' // add status property for new points
+  };
+
+  // Add the new row and get a reference to it
+  row = table.addRow(newRowData);
+
+  // Update the GeoJSON layer with the new point feature
+  var geojsonFeature = {
+    type: "Feature",
+    properties: newRowData,
+    geometry: {
+      type: "Point",
+      coordinates: [e.latlng.lng, e.latlng.lat]
+    }
+  };
+
+  geojsonLayer.addData(geojsonFeature);
+
+  table.scrollToRow(maxId + 1);
+});
+
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+var csrftoken = getCookie('csrftoken');
+
+function saveShapefile() {
+    var filename = document.getElementById('filename').value;
+    var tableData = table.getData();
+    var invalidRows = [];
+
+    // Validate each row
+    for (var i = 0; i < tableData.length; i++) {
+      var row = tableData[i];
+      var taille = parseInt(row.taille);
+      if (!row.nom || row.nom.trim() === '' || isNaN(taille) || taille < 0) {
+          invalidRows.push(row.id);  // Store the invalid row number (1-indexed)
+      }
+    }
+
+    // If there are invalid rows, show an error message and return
+    if (invalidRows.length > 0) {
+        alert('Les lignes ' + invalidRows.join(', ') + ' contiennent des valeurs incorrectes.');
+        return;
+    }
+
+    // Check if filename is empty
+    if (!filename || filename.trim() === '') {
+      alert("Veuillez renseigner un nom avant d'enregistrer une configuration");
+      return;
+    }
+
+    // Check if folder with filename already exists
+    fetch('/check_folder_exists/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken  // Django CSRF token
+        },
+        body: JSON.stringify({ filename: filename, directory: 'media/saved/vcub_config' })
+    }).then(response => response.json()).then(data => {
+        if (data.folderExists) {
+            alert("Il existe déjà une configuration avec ce nom");
+            return;
+        }
+
+        // Save shapefile
+        var geojsonData = {
+            type: 'FeatureCollection',
+            features: tableData.map(row => ({
+                type: 'Feature',
+                properties: row,
+                geometry: {
+                    type: row.type,
+                    coordinates: row.coordinates
+                }
+            }))
+        };
+
+        fetch('/save_shapefile/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken  // Django CSRF token
+            },
+            body: JSON.stringify({ geojson: geojsonData, filename: filename })
+        }).then(response => response.json()).then(data => {
+            console.log(data.status);
+        });
+    });
+}
+
+</script>
+
+{% endblock %}

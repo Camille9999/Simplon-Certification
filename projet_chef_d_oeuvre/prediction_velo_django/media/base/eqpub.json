@@ -1,0 +1,203 @@
+{
+  "A" : {
+    "name" : "Enseignement divers et formation",
+    "ssthemes" : {
+      "A1" : "Maternelle",
+      "A2" : "Élémentaire",
+      "A3" : "Collège",
+      "A4" : "Lycée",
+      "A5" : "Enseignement supérieur",
+      "A6" : "Restaurant universitaire",
+      "A7" : "Résidence universitaire",
+      "A11" : "Enseignement spécialisé",
+      "A12" : "Formation para-médicale",
+      "A13" : "Organisme de formation",
+      "A14" : "Formation Artistique"
+    }
+  },
+
+  "B" : {
+    "name" : "Santé et action sociale",
+    "ssthemes" : {
+      "B1" : "Hôpital ou clinique",
+      "B2" : "Centre de consultation / Centre médico-social / Centre médico-psychologique",
+      "B3" : "Association à caractère sociale ou médico-sociale",
+      "B4" : "Centre social ou médico-social / Centre familial",
+      "B7" : "CCAS et PMI",
+      "B8" : "Foyer d'hébergement",
+      "B9" : "Centre d'aide par le travail",
+      "B10" : "MDSI et PTS",
+      "B12" : "Accueil des gens du voyage"
+    }
+  },
+
+  "C" : {
+    "name" : "Sport - Loisir - Socio-éducatif",
+    "ssthemes" : {
+      "C1" : "Terrain de plein air",
+      "C2" : "Gymnase et salle de sport",
+      "C3" : "Piscine",
+      "C4" : "Complexe sportif",
+      "C5" : "Centre de loisirs polyvalent liés aux entreprises",
+      "C6" : "Golf",
+      "C7" : "Accueil et centre de loisirs",
+      "C8" : "Locaux associatifs ou centres d'animation",
+      "C9" : "Activités nautiques",
+      "C10" : "Loisirs et tourisme",
+      "C11" : "City stade",
+      "C12" : "Centre équestre",
+      "C13" : "Stade",
+      "C14" : "Tennis",
+      "C15" : "Terrain de sports collectifs"
+    }
+  },
+
+  "D" : {
+    "name" : "Culture - Patrimoine",
+    "ssthemes" : {
+      "D1" : "Bibliothèque, vidéothèque, audiothèque, médiathèque",
+      "D2" : "Cinéma / multiplexe",
+      "D3" : "Musée / salle d'exposition",
+      "D4" : "Salle de spectacle, théâtre",
+      "D5" : "Centre culturel",
+      "D6" : "Patrimoine historique public",
+      "D7" : "Lieux évènementiels",
+      "D8" : "Association culturelle",
+      "D9" : "Ludothèque",
+      "D10" : "Orgues",
+      "D11" : "Statues, bassins et fontaines"
+    }
+  },
+
+  "E" : {
+    "name" : "Administration",
+    "ssthemes" : {
+      "E1" : "Agriculture",
+      "E2" : "Culture et communication",
+      "E3" : "Défense et anciens combattants",
+      "E4" : "Économie et finances",
+      "E5" : "Éducation nationale, recherche et technologie",
+      "E6" : "Aménagement territoire et environnement",
+      "E7" : "Équipement transport et logement",
+      "E8" : "Commerce et industrie",
+      "E9" : "Jeunesse et sport",
+      "E10" : "Santé et affaires sociales",
+      "E11" : "Travail et emploi",
+      "E12" : "Justice",
+      "E13" : "Région",
+      "E14" : "Département",
+      "E18" : "Préfecture, Préfecture de Région"
+    }
+  },
+
+  "F" : {
+    "name" : "Services",
+    "ssthemes" : {
+      "F1" : "Office du tourisme, syndicat d'initiative, centre d'information",
+      "F3" : "Cimetière",
+      "F4" : "La Poste",
+      "F5" : "Télécommunications",
+      "F6" : "Télédiffusion et radiodiffusion",
+      "F7" : "Service aux entreprises, pépinières, hôtels"
+    }
+  },
+
+  "G" : {
+    "name" : "Sécurité",
+    "ssthemes" : {
+      "G1" : "Police et Gendarmerie",
+      "G2" : "Centre de secours pompiers",
+      "G3" : "Prison ou centre de jour",
+      "G4" : "Base, caserne ou terrain militaire"
+    }
+  },
+
+  "H" : {
+    "name" : "Espace vert ou espace urbain public",
+    "ssthemes" : {
+      "H1" : "Square",
+      "H2" : "Jardin",
+      "H3" : "Parc",
+      "H4" : "Espace urbain"
+    }
+  },
+
+  "J" : {
+    "name" : "Déplacements",
+    "ssthemes" : {
+      "J1" : "Aéroport",
+      "J2" : "Gare ferroviaire",
+      "J3" : "Gare routière",
+      "J5" : "Parcs relais / pôles échange",
+      "J6" : "Dépôt, atelier, terminus bus ou tramway",
+      "J7" : "Station tramway",
+      "J8" : "Parking",
+      "J9" : "Faisceau ferroviaire",
+      "J10" : "Parking payant",
+      "J11" : "Parking évènementiels, forains",
+      "J12" : "Pontons et embarcadères"
+    }
+  },
+
+  "K" : {
+    "name" : "Production et transformation d'énergie - assainissement - environnement",
+    "ssthemes" : {
+      "K4" : "Production et transformation d'électricité",
+      "K5" : "Production et transformation de gaz",
+      "K6" : "Production de chauffage"
+    }
+  },
+
+  "L" : {
+    "name" : "Cultuel",
+    "ssthemes" : {
+      "L1" : "Lieux de cultes",
+      "L2" : "Autres"
+    }
+  },
+
+  "M" : {
+    "name" : "Métropole",
+    "ssthemes" : {
+      "M1" : "Sites Mériadeck",
+      "M2" : "Pôles territoriaux",
+      "M3" : "Services territoriaux",
+      "M4" : "Environnement",
+      "M5" : "Centre de collecte / Traitement des déchets",
+      "M6" : "Autres"
+    }
+  },
+
+  "N" : {
+    "name" : "Sénior",
+    "ssthemes" : {
+      "N1" : "Établissement d'hébergement pour personnes âgées dépendantes / Maison de retraite médicalisée",
+      "N2" : "Résidence pour personnes âgées",
+      "N3" : "Club sénior",
+      "N4" : "Foyer restaurant"
+    }
+  },
+
+  "O" : {
+    "name" : "Commune",
+    "ssthemes" : {
+      "O1" : "Hôtel de ville ou annexe",
+      "O2" : "Services municipaux",
+      "O3" : "Maison de quartier / Maison municipale",
+      "O4" : "Marchés",
+      "O5" : "Salle polyvalente",
+      "O6" : "Maison des associations"
+    }
+  },
+
+  "P" : {
+    "name" : "Petite enfance",
+    "ssthemes" : {
+      "P1" : "Crèche",
+      "P2" : "Halte-garderie",
+      "P3" : "Micro-crèche",
+      "P4" : "Maison d'assistantes maternelles",
+      "P5" : "Relais d'assistantes maternelles / Maison de la petite enfance / Service d'accueil familial"
+    }
+  }
+}

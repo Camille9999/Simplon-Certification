@@ -1,0 +1,10 @@
+projet_chef_d_oeuvre/prediction_velo
+
+# Cache
+**/__pycache__
+**/.pytest_cache
+**/.ipynb_checkpoints
+
+# Config
+**/.vscode
+**/.python-version

@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block title %}
+Créer une configuration EP
+{% endblock %}
+{% block content %}
+
+<div class="col-md-10 bg-light p-3">
+  <table id="selection-menu" style="width: 100%;">
+    <!-- The theme rows and ssthemes rows will be generated here -->
+  </table>
+
+  <div style="display: flex; justify-content: center; padding-top: 10px;">
+    <input type="text" id="filename" placeholder="Entrer un nom">
+    <button class="btn btn-success" onclick="calculateEpConfig()">Sauvegarder</button>
+    <p id="status" style="margin-left: 10px;"></p>
+  </div>
+
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+$(document).ready(function(){
+  fetch('/media/base/eqpub.json')
+  .then(response => response.json())
+  .then(data => {
+    var i = 0;
+    for (const theme in data) {
+      var themeRow = $('<tr class="theme-row"></tr>');
+      if (i % 2 == 0) {
+        themeRow.css('background-color', '#f2f2f2');
+      } else {
+        themeRow.css('background-color', '#e6e6e6');
+      }
+      var themeCell = $('<td style="width: 100%;"></td>');
+      var themeLabel = $('<label style="width: 90%; display: inline-block;"></label>');
+      var themeCheckbox = $('<input type="checkbox" class="theme">');
+      var arrow = $('<span style="float: right; color: darkgrey;"> &#9660;</span>');
+      themeLabel.append(themeCheckbox);
+      themeLabel.append(' ' + theme + ' - ' + data[theme].name);
+      themeCell.append(themeLabel);
+      themeCell.append(arrow);
+      themeRow.append(themeCell);
+      $('#selection-menu').append(themeRow);
+      var j = 0;
+      for (const sstheme in data[theme].ssthemes) {
+        var ssthemeRow = $('<tr class="sstheme-row" style="display: none;"></tr>');
+        if (j % 2 == 0) {
+          ssthemeRow.css('background-color', '#f9f9f9');
+        } else {
+          ssthemeRow.css('background-color', '#f5f5f5');
+        }
+        var ssthemeCell = $('<td style="padding-left: 30px;"></td>');
+        var ssthemeLabel = $('<label></label>');
+        var ssthemeCheckbox = $('<input type="checkbox" class="sstheme">');
+        ssthemeLabel.append(ssthemeCheckbox);
+        ssthemeLabel.append(' ' + sstheme + ' - ' + data[theme].ssthemes[sstheme]);
+        ssthemeCell.append(ssthemeLabel);
+        ssthemeRow.append(ssthemeCell);
+        $('#selection-menu').append(ssthemeRow);
+        j++;
+      }
+      i++;
+    }
+  });
+
+  $(document).on('click', '.theme', function(){
+    var isChecked = $(this).is(":checked");
+    $(this).closest('.theme-row').nextUntil('.theme-row').find(".sstheme").prop('checked', isChecked);
+    var arrow = $(this).next();
+    if (isChecked) {
+      arrow.html(' &#9650;');
+    } else {
+      arrow.html(' &#9660;');
+    }
+  });
+
+  $(document).on('click', '.theme-row', function(){
+    $(this).nextUntil('.theme-row').toggle();
+    var arrow = $(this).find('span');
+    if (arrow.html() == ' &#9660;') {
+      arrow.html(' &#9650;');
+    } else {
+      arrow.html(' &#9660;');
+    }
+  });
+
+  $(document).on('click', '.sstheme', function(){
+    var allChecked = $(this).closest(".sstheme-row").prevUntil('.theme-row').addBack().find(".sstheme:checked").length == $(this).closest(".sstheme-row").prevUntil('.theme-row').addBack().find(".sstheme").length;
+    $(this).closest(".sstheme-row").prevAll('.theme-row').first().find(".theme").prop('checked', allChecked);
+  });
+});
+</script>
+
+<script>
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+var csrftoken = getCookie('csrftoken');
+
+function calculateEpConfig() {
+  var filename = $('#filename').val();
+  if (filename == '') {
+    alert("Veuillez renseigner un nom avant d'enregistrer une configuration");
+    return;
+  }
+  var checkedSsthemes = $('.sstheme:checked');
+  if (checkedSsthemes.length == 0) {
+    alert("Veuillez sélectionner au moins un élement");
+    return;
+  }
+  fetch('/check_folder_exists/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({ filename: filename + '.json', directory: 'media/saved/ep_config' })
+    }).then(response => response.json()).then(data => {
+        if (data.folderExists) {
+            alert("Il existe déjà une configuration avec ce nom");
+            return;
+    }
+    var ssthemes = [];
+    checkedSsthemes.each(function(){
+      var labelText = $(this).parent().text();
+      var key = labelText.split(' - ')[0].trim();
+      ssthemes.push(key);
+    });
+
+    $('#status').html('<i style="color: grey;">Algorithme génétique en cours d\'exécution</i><span id="loading" style="display: inline-block; margin-left: 5px;">&#9679;</span>');
+    var loading = setInterval(function() {
+      var dots = $('#loading').text().length;
+      $('#loading').text('.'.repeat(dots % 3 + 1));
+    }, 500);
+
+    fetch('/calculate_ep_config/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({
+        'filename': filename,
+        'ssthemes': ssthemes
+      })
+    });
+
+    var checkFileExists = setInterval(function() {
+      fetch('/check_folder_exists/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrftoken
+          },
+          body: JSON.stringify({ filename: filename + '.json', directory: 'media/saved/ep_config' })
+      }).then(response => response.json()).then(data => {
+          if (data.folderExists) {
+          clearInterval(checkFileExists);
+          $('#status').html('<b style="color: black;">Exécution terminée, configuration enregistrée</b> &#10004;');
+        }
+      });
+    }, 1000);  // Check every 1 second
+  })
+}
+
+</script>
+
+{% endblock %}

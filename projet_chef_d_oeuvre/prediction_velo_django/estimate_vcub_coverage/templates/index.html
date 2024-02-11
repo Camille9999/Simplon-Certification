@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}
+Faire une estimation
+{% endblock %}
+{% block content %}
+
+<div class="col-md-10 bg-light p-3">
+
+  <div class="form-group row">
+
+    <div class="col-md-6">
+      <label for="vcubSelect">Configuration VCUB :</label>
+      <select class="form-control" id="vcubSelect">
+        {% for file in vcub_files %}
+          {% if file == "vcubDefault" %}
+            <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
+          {% else %}
+            <option value="{{ file }}">{{ file }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-md-6">
+      <label for="epSelect">Configuration EP :</label>
+      <select class="form-control" id="epSelect">
+        {% for file in ep_files %}
+          {% if file == "epDefault.json" %}
+            <option value="{{ file }}" selected>Défaut</option>
+          {% else %}
+            <option value="{{ file }}">{{ file|cut:".json" }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+
+  </div>
+
+  <div id="map" style="height: 500px; margin-top: 10px;"></div>
+
+  <div class="text-center mt-3">
+    <button id="estimateButton" class="btn btn-success">ESTIMER</button>
+  </div>
+
+  <form id="estimateForm" method="post" action="{% url 'estimate_coverage' %}">
+    {% csrf_token %}
+    <input type="hidden" id="vcub_config" name="vcub_config">
+    <input type="hidden" id="ep_config" name="ep_config">
+  </form>
+
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/shapefile@0.6.3"></script>
+
+<script>
+  var map = L.map('map');
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+  }).addTo(map);
+
+  var geoLayer;
+
+  function loadShapefile(value) {
+    var url = "/media/saved/vcub_config/" + value + '/' + value + '.shp';
+    fetch(url)
+      .then(response => response.arrayBuffer())
+      .then(buffer => shapefile.read(buffer))
+      .then(geojson => {
+        if (geoLayer) {
+          map.removeLayer(geoLayer);
+        }
+        geoLayer = L.geoJSON(geojson, {
+          pointToLayer: function (feature, latlng) {
+            return L.circleMarker(latlng, { color: 'red', radius: '3'});
+          }
+        }).addTo(map);
+        map.fitBounds(geoLayer.getBounds());
+      });
+  }
+
+  $(document).ready(function() {
+    loadShapefile($("#vcubSelect").val());
+
+    $("#vcubSelect").change(function() {
+      loadShapefile($(this).val());
+    });
+  });
+
+  document.getElementById('estimateButton').addEventListener('click', function() {
+    var vcub_config = document.getElementById('vcubSelect').value;
+    var ep_config = document.getElementById('epSelect').value;
+
+    document.getElementById('vcub_config').value = vcub_config;
+    document.getElementById('ep_config').value = ep_config;
+    document.getElementById('estimateForm').submit();
+  });
+
+</script>
+
+
+{% endblock %}

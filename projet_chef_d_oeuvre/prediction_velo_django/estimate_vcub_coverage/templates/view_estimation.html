@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}
+Visualiser une estimation
+{% endblock %}
+{% block content %}
+
+<div class="col-md-10 bg-light p-3">
+
+  <div class="form-group row">
+
+    <div class="col-md-6">
+      <label for="vcubSelect">Estimation :</label>
+      <select class="form-control" id="vcubSelect">
+        {% for file in vcub_files %}
+          {% if file == "vcubDefault_epDefault" %}
+            <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
+          {% else %}
+            <option value="{{ file }}">{{ file }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+
+  </div>
+
+
+  <iframe id="contentFrame" style="height:500px;width:800px;"></iframe>
+
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="https://unpkg.com/shapefile@0.6.3"></script>
+
+<script>
+
+  window.onload = function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var vcub_config = urlParams.get('vcub_config');
+    var ep_config = urlParams.get('ep_config');
+
+    var selectedFile;
+    if (vcub_config && ep_config) {
+      ep_config = ep_config.replace('.json', '');
+      selectedFile = vcub_config + '_' + ep_config;
+    } else {
+      selectedFile = 'vcubDefault_epDefault';
+    }
+
+    document.getElementById('vcubSelect').value = selectedFile;
+    var filePath = '/media/saved/estimations/' + selectedFile + '/' + selectedFile + '.html';
+    document.getElementById('contentFrame').src = filePath;
+  };
+
+  document.getElementById('vcubSelect').addEventListener('change', function() {
+    var selectedFile = this.value;
+    var filePath = '/media/saved/estimations/' + selectedFile + '/' + selectedFile + '.html';
+    document.getElementById('contentFrame').src = filePath;
+  });
+
+</script>
+
+
+{% endblock %}

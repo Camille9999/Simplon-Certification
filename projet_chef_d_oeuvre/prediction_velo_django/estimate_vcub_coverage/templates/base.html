@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .full-height {
+            height: 100vh; /* Set the height to 100% of the viewport height */
+        }
+        .flex-container {
+            display: flex; /* Use Flexbox */
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+  {% load static %}
+  {% csrf_token %}
+  <input type="hidden" id="csrfToken">
+    <div class="container-fluid full-height bg-light">
+        <!-- Header -->
+        <header class="row bg-white p-3">
+            <div class="col-6">
+                <img src="{% static 'images/provoly_logo.svg' %}" alt="Logo" height="50">
+            </div>
+            <div class="col-6 text-right">
+              <button class="btn btn-danger">Se déconnecter</button>
+          </div>
+        </header>
+
+        <!-- Content -->
+        <div class="row bg-light flex-container">
+            <!-- Side Menu -->
+            <div class="col-md-2 bg-light p-3">
+                <ul class="list-group">
+                    <li class="list-group-item {% if title == 'Faire une estimation' %}active{% endif %}">
+                      <a href="{% url 'index' %}" class="nav-link {% if title == 'Faire une estimation' %}disabled{% endif %}">Faire une estimation</a>
+                    </li>
+                    <li class="list-group-item {% if title == 'Visualiser une estimation' %}active{% endif %}">
+                      <a href="{% url 'view_estimation' %}" class="nav-link {% if title == 'Visualiser une estimation' %}disabled{% endif %}">Visualiser une estimation</a>
+                    </li>
+                    <li class="list-group-item {% if title == 'Comparer des estimations' %}active{% endif %}">
+                      <a href="{% url 'compare' %}" class="nav-link {% if title == 'Comparer des estimations' %}disabled{% endif %}">Comparer des estimations</a>
+                    </li>
+                    <li class="list-group-item {% if title == 'Créer une configuration VCUB' %}active{% endif %}">
+                      <a href="{% url 'config_vcub' %}" class="nav-link {% if title == 'Créer une configuration VCUB' %}disabled{% endif %}">Créer une configuration VCUB</a>
+                    </li>
+                    <li class="list-group-item {% if title == 'Créer une configuration EP' %}active{% endif %}">
+                      <a href="{% url 'config_ep' %}" class="nav-link {% if title == 'Créer une configuration EP' %}disabled{% endif %}">Créer une configuration EP</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Page Content -->
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+</body>
+</html>

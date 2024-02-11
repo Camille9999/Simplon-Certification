@@ -1,0 +1,13 @@
+numpy
+pandas
+nltk
+torch
+transformers
+scikit-learn
+tensorflow
+seaborn
+matplotlib
+tensorflow_decision_forests
+typing
+spacy
+pyarrow
