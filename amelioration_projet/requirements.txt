@@ -11,3 +11,5 @@ tensorflow_decision_forests
 typing
 spacy
 pyarrow
+textstat
+textblob
