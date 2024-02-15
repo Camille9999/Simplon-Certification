@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}
+Créer un compte
+{% endblock %}
+{% block content %}
+<div class="login-container">
+  <div class="login-form">
+    <h2>Créer un compte</h2>
+    <form method="post">
+      {% csrf_token %}
+      <label for="email">Identifiant</label>
+      {{ form.username }}
+      <label for="password">Mot de passe</label>
+      {{ form.password1 }}
+      <label for="password">Confirmer le mot de passe</label>
+      {{ form.password2 }}
+      <button type="submit">Se créer un compte</button>
+    </form>
+    <p>Déjà inscrit ? <a href="{% url 'login' %}">Se connecter</a></p>
+  </div>
+</div>
+{% endblock %}

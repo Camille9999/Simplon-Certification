@@ -4,29 +4,26 @@ Visualiser une estimation
 {% endblock %}
 {% block content %}
 
-<div class="col-md-10 bg-light p-3">
+<div class="form-group row">
 
-  <div class="form-group row">
-
-    <div class="col-md-6">
-      <label for="vcubSelect">Estimation :</label>
-      <select class="form-control" id="vcubSelect">
-        {% for file in vcub_files %}
-          {% if file == "vcubDefault_epDefault" %}
-            <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
-          {% else %}
-            <option value="{{ file }}">{{ file }}</option>
-          {% endif %}
-        {% endfor %}
-      </select>
-    </div>
-
+  <div class="col-md-6">
+    <label for="vcubSelect">Estimation :</label>
+    <select class="form-control" id="vcubSelect">
+      {% for file in vcub_files %}
+        {% if file == "vcubDefault_epDefault" %}
+          <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
+        {% else %}
+          <option value="{{ file }}">{{ file }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
   </div>
 
-
-  <iframe id="contentFrame" style="height:500px;width:800px;"></iframe>
-
 </div>
+
+
+<iframe id="contentFrame" style="height:500px;width:800px;"></iframe>
+
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />

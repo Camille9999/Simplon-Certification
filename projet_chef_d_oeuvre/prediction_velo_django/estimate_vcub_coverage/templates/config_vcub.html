@@ -4,38 +4,65 @@ Créer une configuration VCUB
 {% endblock %}
 {% block content %}
 
-<div class="col-md-10 bg-light p-3">
-  <div class="form-group row">
 
-    <div class="col-md-6" style="display: flex; flex-direction: column;">
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <label for="vcubSelect" style="margin-right: 10px;">Choisissez votre configuration VCUB de départ :</label>
-        <select class="form-control" id="vcubSelect" onchange="updateIframe(this.value)" style="width: auto;">
-          {% for file in vcub_files %}
-            {% if file == "vcubDefault" %}
-              <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
-            {% else %}
-              <option value="{{ file }}">{{ file }}</option>
-            {% endif %}
-          {% endfor %}
-        </select>
-        <button id="validateButton" onclick="validateSelection()">Valider</button>
-        <button id="resetButton" onclick="resetSelection()" disabled>Réinitialiser</button>
-      </div>
+<!-- <div class="form-group row">
+
+  <div class="col-md-6" style="display: flex; flex-direction: column;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <label for="vcubSelect" style="margin-right: 10px; white-space: nowrap;">Choisissez votre configuration VCUB de départ :</label>
+      <select class="form-control" id="vcubSelect" onchange="updateIframe(this.value)" style="width: auto;">
+        {% for file in vcub_files %}
+          {% if file == "vcubDefault" %}
+            <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
+          {% else %}
+            <option value="{{ file }}">{{ file }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      <button id="validateButton" onclick="validateSelection()">Valider</button>
+      <button id="resetButton" onclick="resetSelection()" disabled>Réinitialiser</button>
     </div>
-
-  </div>
-
-  <div id="shapefile-table-container"></div>
-
-  <div id="map" style="height: 500px; margin-top: 10px;"></div>
-
-  <div style="display: flex; justify-content: center; padding-top: 10px;">
-    <input type="text" id="filename" placeholder="Entrer un nom">
-    <button class="btn btn-success" onclick="saveShapefile()">Sauvegarder</button>
   </div>
 
 </div>
+
+<div id="shapefile-table-container"></div>
+
+<div id="map"></div>
+
+<div style="display: flex; justify-content: center; padding-top: 10px;">
+  <input type="text" id="filename" placeholder="Entrer un nom">
+  <button class="btn btn-success" onclick="saveShapefile()">Sauvegarder</button>
+</div> -->
+
+
+<div class="content">
+  <div class="col-md-9 d-flex flex-column" style="padding-left: 0px;">
+    <div id="shapefile-table-container" style="margin-bottom: 15px;"></div>
+    <div id="map" style="flex-grow: 1;"></div>
+    <div style="display: flex; justify-content: center; padding-top: 10px;">
+      <input type="text" id="filename" placeholder="Entrer un nom" style="margin-right: 5px;">
+      <button class="btn btn-success" onclick="saveShapefile()">Sauvegarder</button>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="form-group">
+      <label class="label1" for="vcubSelect">Choisissez votre configuration<br>VCUB de départ</label>
+      <select class="form-control" id="vcubSelect" onchange="updateIframe(this.value)" style="width: auto; margin-top: 10px;">
+        {% for file in vcub_files %}
+          {% if file == "vcubDefault" %}
+            <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
+          {% else %}
+            <option value="{{ file }}">{{ file }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+      <button id="validateButton" onclick="validateSelection()">Valider</button>
+      <button id="resetButton" onclick="resetSelection()" disabled>Réinitialiser</button>
+    </div>
+  </div>
+</div>
+
 
 <link href="https://unpkg.com/tabulator-tables@4.9.3/dist/css/tabulator.min.css" rel="stylesheet">
 <script type="text/javascript" src="https://unpkg.com/tabulator-tables@4.9.3/dist/js/tabulator.min.js"></script>

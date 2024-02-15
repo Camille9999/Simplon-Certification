@@ -4,18 +4,17 @@ Créer une configuration EP
 {% endblock %}
 {% block content %}
 
-<div class="col-md-10 bg-light p-3">
-  <table id="selection-menu" style="width: 100%;">
-    <!-- The theme rows and ssthemes rows will be generated here -->
-  </table>
 
-  <div style="display: flex; justify-content: center; padding-top: 10px;">
-    <input type="text" id="filename" placeholder="Entrer un nom">
-    <button class="btn btn-success" onclick="calculateEpConfig()">Sauvegarder</button>
-    <p id="status" style="margin-left: 10px;"></p>
-  </div>
+<table id="selection-menu" style="width: 100%;">
+  <!-- The theme rows and ssthemes rows will be generated here -->
+</table>
 
+<div style="display: flex; justify-content: center; padding-top: 10px;">
+  <input type="text" id="filename" placeholder="Entrer un nom">
+  <button class="btn btn-success" onclick="calculateEpConfig()">Sauvegarder</button>
+  <p id="status" style="margin-left: 10px;"></p>
 </div>
+
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 

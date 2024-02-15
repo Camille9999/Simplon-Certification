@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+<div class="container">
+  {% if user.is_authenticated %}
+  <div class="welcome-message">
+    <p>Bienvenue {{ user.username }} !</p>
+  </div>
+  {% else %}
+  <div class="not-logged-in-message">
+    <p>Vous n'êtes pas connecté</p>
+  </div>
+  <div class="button-container">
+    <a href="{% url 'login' %}">
+      <button class="login-button">Se connecter</button>
+    </a>
+    <a href="{% url 'signup' %}">
+      <button class="signup-button">Se créer un compte</button>
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

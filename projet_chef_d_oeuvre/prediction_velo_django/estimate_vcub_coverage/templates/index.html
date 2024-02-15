@@ -4,51 +4,62 @@ Faire une estimation
 {% endblock %}
 {% block content %}
 
-<div class="col-md-10 bg-light p-3">
-
-  <div class="form-group row">
-
-    <div class="col-md-6">
-      <label for="vcubSelect">Configuration VCUB :</label>
-      <select class="form-control" id="vcubSelect">
+<div class="content">
+  <div class="col-md-9 d-flex flex-column" style="padding-left: 0px;">
+    <div id="map" style="flex-grow: 1;"></div>
+  </div>
+  <div class="col-md-3 d-flex flex-column">
+    <div class="form-group">
+      <label class="label1" for="vcubSelect">Configuration VCUB :</label>
+      <select class="form-control" id="vcubSelect" style="margin-top: 10px;">
         {% for file in vcub_files %}
-          {% if file == "vcubDefault" %}
-            <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
-          {% else %}
-            <option value="{{ file }}">{{ file }}</option>
-          {% endif %}
+        {% if file == "vcubDefault" %}
+        <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
+        {% else %}
+        <option value="{{ file }}">{{ file }}</option>
+        {% endif %}
         {% endfor %}
       </select>
+      <p style="padding-top: 15px; padding-left: 5px;">
+        Sélectionnez la configuration des stations VCUB que vous souhaitez tester.<br> Vous pouvez en configurer une nouvelle <a href="{% url 'config_vcub' %}">ici</a>.
+      </p>
     </div>
-
-    <div class="col-md-6">
-      <label for="epSelect">Configuration EP :</label>
-      <select class="form-control" id="epSelect">
+    <div class="form-group">
+      <label class="label1" for="epSelect">Configuration EP :</label>
+      <select class="form-control" id="epSelect" style="margin-top: 10px;">
         {% for file in ep_files %}
-          {% if file == "epDefault.json" %}
-            <option value="{{ file }}" selected>Défaut</option>
-          {% else %}
-            <option value="{{ file }}">{{ file|cut:".json" }}</option>
-          {% endif %}
+        {% if file == "epDefault.json" %}
+        <option value="{{ file }}" selected>Défaut</option>
+        {% else %}
+        <option value="{{ file }}">{{ file|cut:".json" }}</option>
+        {% endif %}
         {% endfor %}
       </select>
+      <p style="padding-top: 15px; padding-left: 5px;">
+        Sélectionnez la configuration des équipements publics que vous souhaitez tester.<br> Vous pouvez en configurer une nouvelle <a href="{% url 'config_ep' %}">ici</a>.
+      </p>
+      <p style="margin-bottom: 5px; padding-left: 5px;"> La configuration par défaut contient :
+        <ul>
+          <li>A5 : Enseignement supérieur</li>
+          <li>D7 : Lieux évènementiels</li>
+          <li>D3 : Musée / salle d'exposition</li>
+          <li>D11 : Statues, bassins et fontaines</li>
+          <li>H4 : Espace urbain</li>
+          <li>H2 : Jardin</li>
+        </ul>
+      </p>
     </div>
-
+    <div class="text-center mt-3 d-flex justify-content-center" style="flex-grow: 1;">
+      <form id="estimateForm" method="post" action="{% url 'estimate_coverage' %}">
+        {% csrf_token %}
+        <input type="hidden" id="vcub_config" name="vcub_config">
+        <input type="hidden" id="ep_config" name="ep_config">
+        <button id="estimateButton" class="btn btn-success" style="margin-top: 10px; padding: 10px 30px; font-size: 20px;  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3); text-shadow: 1px 1px 1px black;">ESTIMER</button>
+      </form>
+    </div>
   </div>
-
-  <div id="map" style="height: 500px; margin-top: 10px;"></div>
-
-  <div class="text-center mt-3">
-    <button id="estimateButton" class="btn btn-success">ESTIMER</button>
-  </div>
-
-  <form id="estimateForm" method="post" action="{% url 'estimate_coverage' %}">
-    {% csrf_token %}
-    <input type="hidden" id="vcub_config" name="vcub_config">
-    <input type="hidden" id="ep_config" name="ep_config">
-  </form>
-
 </div>
+
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
@@ -67,19 +78,19 @@ Faire une estimation
   function loadShapefile(value) {
     var url = "/media/saved/vcub_config/" + value + '/' + value + '.shp';
     fetch(url)
-      .then(response => response.arrayBuffer())
-      .then(buffer => shapefile.read(buffer))
-      .then(geojson => {
-        if (geoLayer) {
-          map.removeLayer(geoLayer);
+    .then(response => response.arrayBuffer())
+    .then(buffer => shapefile.read(buffer))
+    .then(geojson => {
+      if (geoLayer) {
+        map.removeLayer(geoLayer);
+      }
+      geoLayer = L.geoJSON(geojson, {
+        pointToLayer: function (feature, latlng) {
+          return L.circleMarker(latlng, { color: 'red', radius: '3'});
         }
-        geoLayer = L.geoJSON(geojson, {
-          pointToLayer: function (feature, latlng) {
-            return L.circleMarker(latlng, { color: 'red', radius: '3'});
-          }
-        }).addTo(map);
-        map.fitBounds(geoLayer.getBounds());
-      });
+      }).addTo(map);
+      map.fitBounds(geoLayer.getBounds());
+    });
   }
 
   $(document).ready(function() {
@@ -99,7 +110,7 @@ Faire une estimation
     document.getElementById('estimateForm').submit();
   });
 
-</script>
+  </script>
 
 
 {% endblock %}

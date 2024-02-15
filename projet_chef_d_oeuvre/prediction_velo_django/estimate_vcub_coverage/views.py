@@ -8,9 +8,9 @@ from django.views.generic.edit import FormView
 from django.contrib import messages
 from django.views.generic import TemplateView
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 from urllib.parse import urlencode
 import traceback
-
 
 from .estimate import estimate_coverage, calculate_ep_config
 from .forms import ShapefileForm
@@ -24,23 +24,31 @@ import geopandas as gpd
 from shapely.geometry import Point
 
 
+def home(request):
+    return render(request, 'home.html', {'title': 'Bienvenue'})
+
+@login_required
 @xframe_options_sameorigin
 def index(request):
     vcub_files = os.listdir(os.path.join(settings.MEDIA_ROOT, 'saved/vcub_config'))
     ep_files = os.listdir(os.path.join(settings.MEDIA_ROOT, 'saved/ep_config'))
     return render(request, 'index.html', {'title': 'Faire une estimation', 'vcub_files': vcub_files, 'ep_files': ep_files})
 
+@login_required
 def view_estimation(request):
     vcub_files = os.listdir(os.path.join(settings.MEDIA_ROOT, 'saved/estimations'))
     return render(request, 'view_estimation.html', {'title': 'Visualiser une estimation', 'vcub_files': vcub_files})
 
+@login_required
 def compare(request):
     return render(request, 'compare.html', {'title': 'Comparer des estimations'})
 
+@login_required
 def config_vcub(request):
     vcub_files = os.listdir(os.path.join(settings.MEDIA_ROOT, 'saved/vcub_config'))
     return render(request, 'config_vcub.html', {'title': 'Créer une configuration VCUB', 'vcub_files': vcub_files})
 
+@login_required
 def config_ep(request):
     return render(request, 'config_ep.html', {'title': 'Créer une configuration EP'})
 
