@@ -23,6 +23,7 @@
 .login-form label {
   font-size: 14px;
   color: #333;
+  margin-bottom: 5px;
 }
 
 .login-form input {
@@ -36,10 +37,9 @@
 .remember-me {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   white-space: nowrap;
 }
-
 
 .login-form button {
   width: 100%;
@@ -54,6 +54,9 @@
   margin-top: 20px;
 }
 
+.registration {
+  padding-bottom: 25px;
+}
 
 .options {
   display: flex;

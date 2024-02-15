@@ -30,7 +30,7 @@
           <div class="col-6 text-right">
               <form action="{% url 'logout' %}" method="post">
                   {% csrf_token %}
-                  <button class="btn btn-danger" style="text-shadow: 1px 1px 1px black;">Se déconnecter</button>
+                  <button class="btn btn-danger">Se déconnecter</button>
               </form>
           </div>
           {% endif %}

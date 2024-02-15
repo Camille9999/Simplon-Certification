@@ -5,7 +5,7 @@ Se connecter
 {% block content %}
 <div class="login-container">
   <div class="login-form">
-    <h2>Se connecter</h2>
+    <h2 classe="registration">Se connecter</h2>
     <form method="post">
       {% csrf_token %}
       <label for="email">Identifiant</label>
@@ -14,7 +14,7 @@ Se connecter
       {{ form.password }}
       <div class="options">
         <div class="remember-me">
-          <input type="checkbox" id="remember" name="remember">
+          <input type="checkbox" id="remember" name="remember", style="margin-bottom: 5px; margin-top: 2px; margin-right: 15px;">
           <label for="remember">Se souvenir de moi</label>
         </div>
       </div>
