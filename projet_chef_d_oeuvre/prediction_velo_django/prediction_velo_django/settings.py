@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "accounts",
-    'estimate_vcub_coverage',
+    'vcubit',
 ]
 
 class XFrameOptionsSameOriginMiddleware:

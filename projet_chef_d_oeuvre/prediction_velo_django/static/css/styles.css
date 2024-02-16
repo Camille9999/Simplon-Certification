@@ -1,3 +1,38 @@
+.list-group-item {
+  background-color: white;
+  margin-top: 12px;
+  border-radius: 12px;
+  padding: 6px;
+  border: None;
+}
+
+.list-group-item:has(.nav-link.disabled) {
+  background-color:  rgb(0, 125, 250);
+  margin-top: 12px;
+  border: None;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.nav-link {
+  color: rgb(70, 70, 70);
+  font-weight: bold;
+  padding: 8px;
+}
+
+.nav-link.disabled {
+  color: white;
+}
+
+.sbIcon {
+  margin: 0px 10px;
+  width: 30px;
+  fill: rgb(70, 70, 70);
+}
+
+.sbIcon.active {
+  fill: white;
+}
+
 .login-container {
   display: flex;
   justify-content: center;
@@ -12,7 +47,7 @@
   background-color: #fff;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
   margin: auto;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .login-form h2 {
@@ -82,6 +117,7 @@ body, .container-fluid {
 }
 
 .label1 {
+  margin-bottom: 20px;
   font-weight: bold;
   font-size: 20px;
 }
@@ -92,4 +128,14 @@ body, .container-fluid {
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
   margin-bottom: 20px;
+}
+
+.confVButton {
+  margin-top: 10px;
+  margin-right: 5px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  border-width: 1px;
+  border-color: lightgray;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
 }

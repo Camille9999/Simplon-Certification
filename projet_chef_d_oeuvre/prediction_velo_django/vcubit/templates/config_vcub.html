@@ -4,51 +4,15 @@ Créer une configuration VCUB
 {% endblock %}
 {% block content %}
 
-
-<!-- <div class="form-group row">
-
-  <div class="col-md-6" style="display: flex; flex-direction: column;">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <label for="vcubSelect" style="margin-right: 10px; white-space: nowrap;">Choisissez votre configuration VCUB de départ :</label>
-      <select class="form-control" id="vcubSelect" onchange="updateIframe(this.value)" style="width: auto;">
-        {% for file in vcub_files %}
-          {% if file == "vcubDefault" %}
-            <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
-          {% else %}
-            <option value="{{ file }}">{{ file }}</option>
-          {% endif %}
-        {% endfor %}
-      </select>
-      <button id="validateButton" onclick="validateSelection()">Valider</button>
-      <button id="resetButton" onclick="resetSelection()" disabled>Réinitialiser</button>
-    </div>
-  </div>
-
-</div>
-
-<div id="shapefile-table-container"></div>
-
-<div id="map"></div>
-
-<div style="display: flex; justify-content: center; padding-top: 10px;">
-  <input type="text" id="filename" placeholder="Entrer un nom">
-  <button class="btn btn-success" onclick="saveShapefile()">Sauvegarder</button>
-</div> -->
-
-
 <div class="content">
-  <div class="col-md-9 d-flex flex-column" style="padding-left: 0px;">
+  <div class="col-md-9 d-flex flex-column">
     <div id="shapefile-table-container" style="margin-bottom: 15px;"></div>
     <div id="map" style="flex-grow: 1;"></div>
-    <div style="display: flex; justify-content: center; padding-top: 10px;">
-      <input type="text" id="filename" placeholder="Entrer un nom" style="margin-right: 5px;">
-      <button class="btn btn-success" onclick="saveShapefile()">Sauvegarder</button>
-    </div>
   </div>
   <div class="col-md-3">
     <div class="form-group">
       <label class="label1" for="vcubSelect">Choisissez votre configuration<br>VCUB de départ</label>
-      <select class="form-control" id="vcubSelect" onchange="updateIframe(this.value)" style="width: auto; margin-top: 10px;">
+      <select class="form-control" id="vcubSelect" onchange="updateIframe(this.value)">
         {% for file in vcub_files %}
           {% if file == "vcubDefault" %}
             <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
@@ -57,8 +21,30 @@ Créer une configuration VCUB
           {% endif %}
         {% endfor %}
       </select>
-      <button id="validateButton" onclick="validateSelection()">Valider</button>
-      <button id="resetButton" onclick="resetSelection()" disabled>Réinitialiser</button>
+      <div>
+        <button class="confVButton" id="validateButton" onclick="validateSelection()">Valider</button>
+        <button class="confVButton" id="resetButton" onclick="resetSelection()" disabled>Réinitialiser</button>
+      </div>
+      <p style="margin-bottom: 20px; padding-left: 5px;">
+        Cette page vous permet de créer de nouvelles configurations du réseau vcub à partir d'une configuration existante.
+      </p>
+      <p style="margin-bottom: 5px; padding-left: 5px;">
+        Après avoir sélectionné et validé une configuration de départ vous pouvez :
+        <ul>
+          <li>modifier ou supprimer une station,</li>
+          <li>créer une nouvelle station en cliquant sur la carte puis renseignant les champs nom et taille,</li>
+          <li>réinitialiser la carte (toute modification sera perdue)</li>
+          <li>enregistrer une nouvelle configuration</li>
+        </ul>
+      </p>
+    </div>
+    <div class="form-group">
+      <label class="label1">Enregistez votre configuration</label>
+      <input class="form-control" type="text" id="filename" placeholder="Entrer un nom" style="margin-bottom: 20px;">
+      <div class="d-flex justify-content-center">
+        <button class="btn btn-success btn-lg" onclick="saveShapefile()" style="margin-right: 20px; margin-top: 10px; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">Enregister</button>
+        <button class="btn btn-success btn-lg" style="margin-top: 10px; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">Télécharger</button>
+      </div>
     </div>
   </div>
 </div>
@@ -121,7 +107,7 @@ function resetSelection() {
 var table = new Tabulator("#shapefile-table-container", {
   height: "200px",
   layout: "fitColumns",
-  placeholder: "Veuillez sélectionner une configuration existante",
+  placeholder: "Veuillez sélectionner une configuration de départ",
 
   rowAdded: function(row) {
     // Remove highlight from previously highlighted row

@@ -21,8 +21,8 @@ from django.conf.urls.static import static
 from django.views.generic.base import TemplateView
 
 urlpatterns = [
-    path("", include("estimate_vcub_coverage.urls")),
-    path("estimate_vcub_coverage/", include("estimate_vcub_coverage.urls")),
+    path("", include("vcubit.urls")),
+    path("vcubit/", include("vcubit.urls")),
     path('admin/', admin.site.urls),
     path("accounts/", include("accounts.urls")),
     path('accounts/', include('django.contrib.auth.urls')),

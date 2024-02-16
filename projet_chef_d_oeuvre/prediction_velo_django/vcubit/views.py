@@ -25,14 +25,14 @@ from shapely.geometry import Point
 
 
 def home(request):
-    return render(request, 'home.html', {'title': 'Bienvenue'})
+    return render(request, 'home.html', {'title': 'Accueil'})
 
 @login_required
 @xframe_options_sameorigin
-def index(request):
+def estimate_vcub(request):
     vcub_files = os.listdir(os.path.join(settings.MEDIA_ROOT, 'saved/vcub_config'))
     ep_files = os.listdir(os.path.join(settings.MEDIA_ROOT, 'saved/ep_config'))
-    return render(request, 'index.html', {'title': 'Faire une estimation', 'vcub_files': vcub_files, 'ep_files': ep_files})
+    return render(request, 'estimate_vcub.html', {'title': 'Faire une estimation', 'vcub_files': vcub_files, 'ep_files': ep_files})
 
 @login_required
 def view_estimation(request):
@@ -115,7 +115,7 @@ def save_shapefile(request):
         features = []
         for feature in data['geojson']['features']:
             new_feature = {
-                'id': feature['properties']['id'],
+                #'id': feature['properties']['id'],
                 'nom' : feature['properties']['nom'],
                 'taille' : feature['properties']['taille'],
                 'geometry': feature['geometry']
@@ -123,7 +123,7 @@ def save_shapefile(request):
             features.append(new_feature)
         gdf = gpd.GeoDataFrame(features)
         gdf['geometry'] = gdf.apply(lambda row: Point(row['geometry']['coordinates']), axis=1)
-        gdf['id'] = gdf['id'].apply(int).copy()
+        #gdf['id'] = gdf['id'].apply(int).copy()
         gdf['taille'] = gdf['taille'].apply(int).copy()
         gdf = gdf.set_crs(4326)
 
@@ -140,7 +140,7 @@ def save_shapefile(request):
 
 
 class EstimateCoverage(FormView):
-    template_name = 'index.html'
+    template_name = 'estimate_vcub.html'
     form_class = ShapefileForm
 
     def post(self, request, *args, **kwargs):

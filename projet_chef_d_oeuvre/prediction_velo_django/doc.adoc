@@ -1,0 +1,14 @@
+RAF
+- home page (connecté et non connecté)
+- boutton Télécharger de config_vcub
+- réparer problèmes carte/table config_vcub
+- front config_ep
+- front visualisation
+- gestion db/utilisateurs
+
+- comparaison
+
+
+
+DONE
+- front side menu
