@@ -10,7 +10,6 @@ urlpatterns = [
     path('comparer/', views.compare, name='compare'),
     path('configurer/vcub/', views.config_vcub, name='config_vcub'),
     path('configurer/ep/', views.config_ep, name='config_ep'),
-    path('copy_directory/', views.CopyDirectoryView.as_view(), name='copy_directory'),
     path('get_shapefile_data/', views.get_shapefile_data, name='get_shapefile_data'),
     path('save_shapefile/', views.save_shapefile, name='save_shapefile'),
     path('check_folder_exists/', views.check_folder_exists, name='check_folder_exists'),

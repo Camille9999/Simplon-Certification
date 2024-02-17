@@ -39,8 +39,7 @@ Visualiser une estimation
 
     var selectedFile;
     if (vcub_config && ep_config) {
-      ep_config = ep_config.replace('.json', '');
-      selectedFile = vcub_config + '_' + ep_config;
+      selectedFile = vcub_config.slice(0, -4) + '_' + ep_config.slice(0, -5);
     } else {
       selectedFile = 'vcubDefault_epDefault';
     }

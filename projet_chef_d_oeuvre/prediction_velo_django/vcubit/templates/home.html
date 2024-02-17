@@ -5,24 +5,7 @@ Accueil
 {% endblock %}
 
 {% block content %}
-<div class="container">
-  {% if user.is_authenticated %}
-  <div class="welcome-message">
-    <p>Bienvenue {{ user.username }} !</p>
-  </div>
-  {% else %}
-  <div class="not-logged-in-message">
-    <p>Pour utiliser l'application vous devez vous connecter ou créer un compte.</p>
-  </div>
-  <div class="button-container">
-    <a href="{% url 'login' %}">
-      <button class="login-button">Se connecter</button>
-    </a>
-    <a href="{% url 'signup' %}">
-      <button class="signup-button">Créer un compte</button>
-    </a>
-  </div>
-  {% endif %}
+<div class="col-12", style="padding: 100px 200px;">
   <div class="form-group">
     <label class="label1">VCubIt, c'est quoi ?</label>
     <p>

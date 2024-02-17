@@ -2,7 +2,7 @@ from django.conf import settings
 from django.shortcuts import render
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from django.views import View
 from django.views.generic.edit import FormView
 from django.contrib import messages
@@ -12,9 +12,9 @@ from django.contrib.auth.decorators import login_required
 from urllib.parse import urlencode
 import traceback
 
+from .gdf_to_shp import gdf_to_shp_zip
 from .estimate import estimate_coverage, calculate_ep_config
 from .forms import ShapefileForm
-
 
 import os
 import shutil
@@ -22,6 +22,8 @@ import shutil
 import json
 import geopandas as gpd
 from shapely.geometry import Point
+
+
 
 
 def home(request):
@@ -53,52 +55,32 @@ def config_ep(request):
     return render(request, 'config_ep.html', {'title': 'Créer une configuration EP'})
 
 
-class CopyDirectoryView(View):
-    def post(self, request, *args, **kwargs):
-        directory = request.POST.get('directory')
-        destination = 'media/temp'
-        destination_path = os.path.join(destination, os.path.basename(directory))
-        try:
-            print(f"Current working directory: {os.getcwd()}")
-            print(f"Copying from {directory} to {destination_path}")
-            if os.path.exists(destination_path):
-                shutil.rmtree(destination_path)
-            shutil.copytree(directory, destination_path)
-            print(f"Successfully copied to {destination_path}")
-            return JsonResponse({"status": "success"})
-        except Exception as e:
-            print(f"Error copying directory: {str(e)}")
-            return JsonResponse({"status": "error", "message": str(e)})
-
 
 def get_shapefile_data(request):
-    directory = 'media/temp/' + request.GET.get('directory')
+    directory = 'media/saved/vcub_config'
     searchTerm = request.GET.get('searchTerm')
-
     for file in os.listdir(directory):
-        if file.endswith('.shp'):
+        if file.endswith('.zip'):
             shapefile_path = os.path.join(directory, file)
             break
     else:
         return JsonResponse({'error': 'No shapefile found in the given directory'})
-
     gdf = gpd.read_file(shapefile_path)
-
     if searchTerm:
         gdf = gdf[gdf.apply(lambda row: row.astype(str).str.contains(searchTerm).any(), axis=1)]
-
     data = json.loads(gdf.to_json())
-
     return JsonResponse(data, safe=False)
+
 
 
 @csrf_exempt
 def check_folder_exists(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        filename = data.get('filename')
+        filename = data.get('filename') + '.zip'
         directory = data.get('directory')
         if filename:
+            print(directory, filename)
             file_path = os.path.join(directory, filename)
             folder_exists = os.path.exists(file_path)
             return JsonResponse({'folderExists': folder_exists})
@@ -115,7 +97,6 @@ def save_shapefile(request):
         features = []
         for feature in data['geojson']['features']:
             new_feature = {
-                #'id': feature['properties']['id'],
                 'nom' : feature['properties']['nom'],
                 'taille' : feature['properties']['taille'],
                 'geometry': feature['geometry']
@@ -123,17 +104,25 @@ def save_shapefile(request):
             features.append(new_feature)
         gdf = gpd.GeoDataFrame(features)
         gdf['geometry'] = gdf.apply(lambda row: Point(row['geometry']['coordinates']), axis=1)
-        #gdf['id'] = gdf['id'].apply(int).copy()
         gdf['taille'] = gdf['taille'].apply(int).copy()
         gdf = gdf.set_crs(4326)
 
-        directory = 'media/saved/vcub_config/' + data['filename']
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-            gdf.to_file(directory + '/' + data['filename'] + '.shp')
-            return JsonResponse({'status': 'success'})
-        else:
-            return JsonResponse({'status': 'failed', 'error': 'Directory already exists'})
+        directory = 'media/saved/vcub_config'
+        name = data['filename']
+
+        if not os.path.exists(f"{directory}/{name}.zip"):
+            result = gdf_to_shp_zip(gdf, name, directory)
+            if result != 0:
+                return JsonResponse({'status': 'failed', 'error': 'An error occurred while saving the shapefile'})
+
+        if data['download']:
+            file_path = f"{directory}/{name}.zip"
+            if os.path.exists(file_path):
+                return FileResponse(open(file_path, 'rb'), as_attachment=True)
+            else:
+                return JsonResponse({'status': 'failed', 'error': 'File does not exist'})
+
+        return JsonResponse({'status': 'success'})
     else:
         return JsonResponse({'status': 'failed'})
 

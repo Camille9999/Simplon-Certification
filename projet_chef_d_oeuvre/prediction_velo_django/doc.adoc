@@ -1,14 +1,23 @@
-RAF
-- home page (connecté et non connecté)
-- boutton Télécharger de config_vcub
-- réparer problèmes carte/table config_vcub
-- front config_ep
-- front visualisation
+== RAF
+* P0
 - gestion db/utilisateurs
 
-- comparaison
+
+* P1
+- front visualisation
+- front config_ep
+
+* P2
+- réparer problèmes carte/table config_vcub
+- feedback boutton Enregistrer
 
 
+* P3
+- hover popup estimation
+- uniformisation chargement shp estimation/config_vcub
 
-DONE
+
+== DONE
 - front side menu
+- home page (connecté et non connecté)
+- boutton Télécharger de config_vcub

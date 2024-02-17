@@ -6,9 +6,9 @@ from sklearn.preprocessing import MinMaxScaler
 from math import pi, acos, sqrt
 import json
 import folium
-from mapclassify import UserDefined
-import branca.colormap as cm
 from pygad import GA
+
+from .gdf_to_shp import gdf_to_shp_zip
 
 
 # Ajoute la densité de population de la maille dans laquelle se situe les objets de gdf
@@ -160,11 +160,9 @@ def calculate_score(gdf_density : gpd.GeoDataFrame, subset, weigths) -> gpd.GeoD
     return gdf_density_with_score
 
 
-def preprocessing(ssthemes, vcub_config='vcubDefault'):
+def preprocessing(ssthemes, vcub_config='vcubDefault.zip'):
 
-    vcub_path = f'media/saved/vcub_config/{vcub_config}'
-
-    gdf_vcub = gpd.read_file(vcub_path).to_crs(2154)
+    gdf_vcub = gpd.read_file(f'media/saved/vcub_config/{vcub_config}').to_crs(2154)
     gdf_eqpub = gpd.read_file('media/base/eqpub').to_crs(2154)
     gdf_density = gpd.read_file('media/base/density').to_crs(2154)
 
@@ -208,10 +206,10 @@ def estimate_coverage(vcub_config, ep_config):
     gdf_density = preprocessing(ssthemes, vcub_config=vcub_config)
     gdf_density = calculate_score(gdf_density, ssthemes, weights)
 
-    shp_folder = f'{vcub_config}_{ep_config[:-5]}'
-    shp_folder_path = 'media/saved/estimations/' +  shp_folder
+    name = f'{vcub_config[:-4]}_{ep_config[:-5]}'
+    shp_folder_path = f'media/saved/estimations/{name}'
 
-    gdf_density.to_crs(4326).to_file(shp_folder_path, driver='ESRI Shapefile')
+    gdf_to_shp_zip(gdf_density.to_crs(4326), name, shp_folder_path)
 
     bench_points = gpd.GeoDataFrame({'geometry': [Point(428000, 6423000), Point(428000, 6423000)], 'score': [-1, 1]}, crs=2154)
     gdf_density = pd.concat([gdf_density, bench_points], ignore_index=True)
@@ -231,4 +229,4 @@ def estimate_coverage(vcub_config, ep_config):
     folium.TileLayer("Stamen Toner").add_to(m)
     folium.LayerControl().add_to(m)
 
-    m.save(f'{shp_folder_path}/{shp_folder}.html')
+    m.save(f'{shp_folder_path}/{name}.html')

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}
 Créer une configuration VCUB
 {% endblock %}
@@ -14,10 +15,10 @@ Créer une configuration VCUB
       <label class="label1" for="vcubSelect">Choisissez votre configuration<br>VCUB de départ</label>
       <select class="form-control" id="vcubSelect" onchange="updateIframe(this.value)">
         {% for file in vcub_files %}
-          {% if file == "vcubDefault" %}
+          {% if file == "vcubDefault.zip" %}
             <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
           {% else %}
-            <option value="{{ file }}">{{ file }}</option>
+            <option value="{{ file }}">{{ file|slice:":-4" }}</option>
           {% endif %}
         {% endfor %}
       </select>
@@ -42,8 +43,8 @@ Créer une configuration VCUB
       <label class="label1">Enregistez votre configuration</label>
       <input class="form-control" type="text" id="filename" placeholder="Entrer un nom" style="margin-bottom: 20px;">
       <div class="d-flex justify-content-center">
-        <button class="btn btn-success btn-lg" onclick="saveShapefile()" style="margin-right: 20px; margin-top: 10px; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">Enregister</button>
-        <button class="btn btn-success btn-lg" style="margin-top: 10px; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">Télécharger</button>
+        <button class="btn btn-success btn-lg" onclick="saveShapefile(false)" style="margin-right: 20px; margin-top: 10px; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">Enregistrer</button>
+        <button class="btn btn-success btn-lg" onclick="saveShapefile(true)" style="margin-top: 10px; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">Télécharger</button>
       </div>
     </div>
   </div>
@@ -76,29 +77,13 @@ $(document).ready(function() {
 function validateSelection() {
   console.log("validateSelection function called");
   var selectedOption = $('#vcubSelect').val();
-  var csrftoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-  $.ajax({
-    url: '/copy_directory/',  // URL of the Django view
-    type: 'POST',
-    data: {
-      'directory': 'media/saved/vcub_config/' + selectedOption,
-      'csrfmiddlewaretoken': csrftoken
-    },
-    success: function(response) {
-      // handle success
-      console.log(response);
-      // Load shapefile data when the selection is validated
-      loadShapefileData(selectedOption);
-    },
-    error: function(error) {
-      // handle error
-      console.log(error);
-    }
-  });
+  // Load shapefile data when the selection is validated
+  loadShapefileData(selectedOption);
   document.getElementById('vcubSelect').disabled = true;
   document.getElementById('validateButton').disabled = true;
   document.getElementById('resetButton').disabled = false;
 }
+
 
 function resetSelection() {
   location.reload();
@@ -239,10 +224,9 @@ var geojsonLayer = L.geoJSON(null, {
     return L.circleMarker(latlng, {
       radius: 4,
       fillColor: color,
-      color: "#000",
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 0.8
+      color: color,
+      weight: 2,
+      fillOpacity: 0.6
     }).on('mouseover', function () {
       // Display info of point in a box when hovered
       var popupContent = '';
@@ -319,7 +303,7 @@ function getCookie(name) {
 
 var csrftoken = getCookie('csrftoken');
 
-function saveShapefile() {
+function saveShapefile(download) {
     var filename = document.getElementById('filename').value;
     var tableData = table.getData();
     var invalidRows = [];
@@ -378,10 +362,29 @@ function saveShapefile() {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': csrftoken  // Django CSRF token
             },
-            body: JSON.stringify({ geojson: geojsonData, filename: filename })
-        }).then(response => response.json()).then(data => {
-            console.log(data.status);
-        });
+            body: JSON.stringify({ geojson: geojsonData, filename: filename, download: download })
+        }).then(response => {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json().then(data => {
+                    console.log(data.status);
+                });
+            } else if (contentType && contentType.indexOf("application/zip") !== -1) {
+                return response.blob().then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = filename + '.zip';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                });
+            } else {
+                console.log('Unexpected content type:', contentType);
+            }
+        }).catch((error) => console.error('Error:', error));
+
     });
 }
 
