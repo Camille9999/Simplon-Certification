@@ -1,6 +1,8 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,95 +11,124 @@
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
     <style>
         .full-height {
-            height: 100vh; /* Set the height to 100% of the viewport height */
+            height: 100vh;
         }
         .flex-container {
-            display: flex; /* Use Flexbox */
+            display: flex;
         }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
+
+
 <body>
+
   {% csrf_token %}
   <input type="hidden" id="csrfToken">
-    <div class="container-fluid full-height bg-light">
-        <!-- Header -->
-        <header class="row bg-white p-3 align-items-center" style="box-shadow: 0 0 4px rgba(0, 0, 0, 0.3); z-index: 100;">
-          <div class="col-6">
-              <img src="{% static 'images/provoly_logo.svg' %}" alt="Logo" height="60">
-          </div>
-          {% if user.is_authenticated %}
-          <div class="col-6 text-right">
-              <form action="{% url 'logout' %}" method="post">
-                  {% csrf_token %}
-                  <button class="btn btn-danger" style="box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">Se déconnecter</button>
-              </form>
-          </div>
-          {% endif %}
-      </header>
+  <div class="container-fluid full-height bg-light">
 
-      <!-- Content -->
-      <div class="row bg-light full-height flex-container">
-          <!-- Side Menu -->
-          {% if user.is_authenticated %}
-          <div class="col-md-2 d-flex" style="padding: 0px !important;">
-              {% block side_menu %}
-              <div class="form-group" style="flex-grow: 1; border-radius: 0px; margin-bottom: 0px; box-shadow: 0 0 2px rgba(0, 0, 0, 0.3); z-index: 50;">
-                <ul class="list-group" style="border-radius: 12px;">
+    <!-- Header -->
+    <header class="row bg-white p-3 align-items-center" style="box-shadow: 0 0 4px rgba(0, 0, 0, 0.3); z-index: 100;">
+      <div class="col-6">
+        <img src="{% static 'images/provoly_logo.svg' %}" alt="Logo" height="60">
+      </div>
+    </header>
 
-                    <li class="list-group-item d-flex {% if title == 'Accueil' %}active{% endif %}">
+    <!-- Content -->
+    <div class="row bg-light full-height flex-container">
+
+        <!-- Side Menu -->
+        {% if user.is_authenticated %}
+        <div class="col-md-2 d-flex" style="padding: 0px !important;">
+
+            {% block side_menu %}
+            <div class="form-group d-flex flex-column" style="flex-grow: 1; border-radius: 0px; margin-bottom: 0px; box-shadow: 0 0 2px rgba(0, 0, 0, 0.3); z-index: 50;">
+              <ul class="list-group" style="border-radius: 12px;">
+
+                  <li class="list-group-item d-flex {% if title == 'Accueil' %}active{% endif %}">
+                    <a href="{% url 'home' %}" class="nav-link {% if title == 'Accueil' %}disabled{% endif %}">
                       <svg id="house-solid" class="sbIcon {% if title == 'Accueil' %}active{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                         <path d="M575.8 255.5c0 18-15 32.1-32 32.1h-32l.7 160.2c0 2.7-.2 5.4-.5 8.1V472c0 22.1-17.9 40-40 40H456c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1H416 392c-22.1 0-40-17.9-40-40V448 384c0-17.7-14.3-32-32-32H256c-17.7 0-32 14.3-32 32v64 24c0 22.1-17.9 40-40 40H160 128.1c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2H104c-22.1 0-40-17.9-40-40V360c0-.9 0-1.9 .1-2.8V287.6H32c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z"/>
                       </svg>
-                      <a href="{% url 'home' %}" class="nav-link {% if title == 'Accueil' %}disabled{% endif %}">Accueil</a>
-                    </li>
+                      Accueil
+                    </a>
+                  </li>
 
-                    <li class="list-group-item d-flex {% if title == 'Faire une estimation' %}active{% endif %}">
+                  <li class="list-group-item d-flex {% if title == 'Faire une estimation' %}active{% endif %}">
+                    <a href="{% url 'estimate_vcub' %}" class="nav-link {% if title == 'Faire une estimation' %}disabled{% endif %}">
                       <svg id="chart-line-solid" class="sbIcon {% if title == 'Faire une estimation' %}active{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                         <path d="M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V400c0 44.2 35.8 80 80 80H480c17.7 0 32-14.3 32-32s-14.3-32-32-32H80c-8.8 0-16-7.2-16-16V64zm406.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L320 210.7l-57.4-57.4c-12.5-12.5-32.8-12.5-45.3 0l-112 112c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L240 221.3l57.4 57.4c12.5 12.5 32.8 12.5 45.3 0l128-128z"/>
                       </svg>
-                      <a href="{% url 'estimate_vcub' %}" class="nav-link {% if title == 'Faire une estimation' %}disabled{% endif %}">Faire une estimation</a>
-                    </li>
+                      Faire une estimation
+                    </a>
+                  </li>
 
-                    <li class="list-group-item d-flex {% if title == 'Visualiser une estimation' %}active{% endif %}">
+                  <li class="list-group-item d-flex {% if title == 'Visualiser une estimation' %}active{% endif %}">
+                    <a href="{% url 'view_estimation' %}" class="nav-link {% if title == 'Visualiser une estimation' %}disabled{% endif %}">
                       <svg id="map-solid" class="sbIcon {% if title == 'Visualiser une estimation' %}active{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                         <path d="M384 476.1L192 421.2V35.9L384 90.8V476.1zm32-1.2V88.4L543.1 37.5c15.8-6.3 32.9 5.3 32.9 22.3V394.6c0 9.8-6 18.6-15.1 22.3L416 474.8zM15.1 95.1L160 37.2V423.6L32.9 474.5C17.1 480.8 0 469.2 0 452.2V117.4c0-9.8 6-18.6 15.1-22.3z"/>
                       </svg>
-                      <a href="{% url 'view_estimation' %}" class="nav-link {% if title == 'Visualiser une estimation' %}disabled{% endif %}">Visualiser une estimation</a>
-                    </li>
+                      Visualiser une estimation
+                    </a>
+                  </li>
 
-                    <li class="list-group-item d-flex {% if title == 'Comparer des estimations' %}active{% endif %}">
+                  <li class="list-group-item d-flex {% if title == 'Comparer des estimations' %}active{% endif %}">
+                    <a href="{% url 'compare' %}" class="nav-link {% if title == 'Comparer des estimations' %}disabled{% endif %}">
                       <svg id="chart-pie-solid" class="sbIcon {% if title == 'Comparer des estimations' %}active{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                         <path d="M304 240V16.6c0-9 7-16.6 16-16.6C443.7 0 544 100.3 544 224c0 9-7.6 16-16.6 16H304zM32 272C32 150.7 122.1 50.3 239 34.3c9.2-1.3 17 6.1 17 15.4V288L412.5 444.5c6.7 6.7 6.2 17.7-1.5 23.1C371.8 495.6 323.8 512 272 512C139.5 512 32 404.6 32 272zm526.4 16c9.3 0 16.6 7.8 15.4 17c-7.7 55.9-34.6 105.6-73.9 142.3c-6 5.6-15.4 5.2-21.2-.7L320 288H558.4z"/>
                       </svg>
-                      <a href="{% url 'compare' %}" class="nav-link {% if title == 'Comparer des estimations' %}disabled{% endif %}">Comparer des estimations</a>
-                    </li>
+                      Comparer des estimations
+                    </a>
+                  </li>
 
-                    <li class="list-group-item d-flex {% if title == 'Créer une configuration VCUB' %}active{% endif %}">
+                  <li class="list-group-item d-flex {% if title == 'Créer une configuration VCUB' %}active{% endif %}">
+                    <a href="{% url 'config_vcub' %}" class="nav-link {% if title == 'Créer une configuration VCUB' %}disabled{% endif %}">
                       <svg id="person-biking-solid" class="sbIcon {% if title == 'Créer une configuration VCUB' %}active{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                         <path d="M400 96a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm27.2 64l-61.8-48.8c-17.3-13.6-41.7-13.8-59.1-.3l-83.1 64.2c-30.7 23.8-28.5 70.8 4.3 91.6L288 305.1V416c0 17.7 14.3 32 32 32s32-14.3 32-32V288c0-10.7-5.3-20.7-14.2-26.6L295 232.9l60.3-48.5L396 217c5.7 4.5 12.7 7 20 7h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H427.2zM56 384a72 72 0 1 1 144 0A72 72 0 1 1 56 384zm200 0A128 128 0 1 0 0 384a128 128 0 1 0 256 0zm184 0a72 72 0 1 1 144 0 72 72 0 1 1 -144 0zm200 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0z"/>
                       </svg>
-                      <a href="{% url 'config_vcub' %}" class="nav-link {% if title == 'Créer une configuration VCUB' %}disabled{% endif %}">Configuration VCUB</a>
-                    </li>
+                      Configuration VCUB
+                    </a>
+                  </li>
 
-                    <li class="list-group-item d-flex {% if title == 'Créer une configuration EP' %}active{% endif %}">
+                  <li class="list-group-item d-flex {% if title == 'Créer une configuration EP' %}active{% endif %}">
+                    <a href="{% url 'config_ep' %}" class="nav-link {% if title == 'Créer une configuration EP' %}disabled{% endif %}">
                       <svg id="tree-city-solid" class="sbIcon {% if title == 'Créer une configuration EP' %}active{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
                         <path d="M288 48c0-26.5 21.5-48 48-48h96c26.5 0 48 21.5 48 48V192h40V120c0-13.3 10.7-24 24-24s24 10.7 24 24v72h24c26.5 0 48 21.5 48 48V464c0 26.5-21.5 48-48 48H432 336c-26.5 0-48-21.5-48-48V48zm64 32v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V80c0-8.8-7.2-16-16-16H368c-8.8 0-16 7.2-16 16zm16 80c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V176c0-8.8-7.2-16-16-16H368zM352 272v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V272c0-8.8-7.2-16-16-16H368c-8.8 0-16 7.2-16 16zm176-16c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V272c0-8.8-7.2-16-16-16H528zM512 368v32c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16V368c0-8.8-7.2-16-16-16H528c-8.8 0-16 7.2-16 16zM224 160c0 6-1 11-2 16c20 14 34 38 34 64c0 45-36 80-80 80H160V480c0 18-15 32-32 32c-18 0-32-14-32-32V320H80c-45 0-80-35-80-80c0-26 13-50 33-64c-1-5-1-10-1-16c0-53 42-96 96-96c53 0 96 43 96 96z"/>
                       </svg>
-                      <a href="{% url 'config_ep' %}" class="nav-link {% if title == 'Créer une configuration EP' %}disabled{% endif %}">Configuration EP</a>
-                    </li>
+                      Configuration EP
+                    </a>
+                  </li>
+              </ul>
 
-                </ul>
+              <div class="mt-auto">
+                <form action="{% url 'logout' %}" method="post">
+                  {% csrf_token %}
+                  <a href="#" onclick="this.closest('form').submit();" class="nav-link">
+                    <svg id="arrow-right-from-bracket-solid" class="sbIcon {% if title == 'Créer une configuration EP' %}active{% endif %}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
+                      <path d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 192 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128zM160 96c17.7 0 32-14.3 32-32s-14.3-32-32-32L96 32C43 32 0 75 0 128L0 384c0 53 43 96 96 96l64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0c-17.7 0-32-14.3-32-32l0-256c0-17.7 14.3-32 32-32l64 0z"/>
+                    </svg>
+                    Se déconnecter
+                  </a>
+                </form>
               </div>
-              {% endblock %}
-          </div>
-          {% endif %}
-          <!-- Page Content -->
-          <div class="{{ user.is_authenticated|yesno:'col-md-10,col-md-12' }} bg-light p-3 d-flex flex-column">
-            {% block content %}
+
+            </div>
             {% endblock %}
-          </div>
-      </div>
+
+        </div>
+        {% endif %}
+
+        <!-- Page Content -->
+        <div class="{{ user.is_authenticated|yesno:'col-md-10,col-md-12' }} bg-light p-3 d-flex flex-column">
+          {% block content %}
+          {% endblock %}
+        </div>
+
     </div>
+
+  </div>
+
 </body>
+
+
 </html>

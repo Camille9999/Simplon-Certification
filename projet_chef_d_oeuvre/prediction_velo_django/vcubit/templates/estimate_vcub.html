@@ -86,7 +86,7 @@ Faire une estimation
       }
       geoLayer = L.geoJSON(geojson, {
         pointToLayer: function (feature, latlng) {
-          return L.circleMarker(latlng, { color: 'red', radius: '3'});
+          return L.circleMarker(latlng, {color: 'red', radius: 4, weight: 2, fillColor: 'red', fillOpacity: 0.6});
         }
       }).addTo(map);
       map.fitBounds(geoLayer.getBounds());

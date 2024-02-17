@@ -17,14 +17,19 @@
   color: rgb(70, 70, 70);
   font-weight: bold;
   padding: 8px;
+  white-space: nowrap;
 }
 
 .nav-link.disabled {
   color: white;
 }
 
+.nav-link:hover {
+  color: rgb(70, 70, 70);
+}
+
 .sbIcon {
-  margin: 0px 10px;
+  margin-right: 10px;
   width: 30px;
   fill: rgb(70, 70, 70);
 }

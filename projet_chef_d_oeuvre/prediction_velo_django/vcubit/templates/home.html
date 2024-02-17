@@ -5,7 +5,6 @@ Accueil
 {% endblock %}
 
 {% block content %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
 <div class="container">
   {% if user.is_authenticated %}
   <div class="welcome-message">
@@ -13,16 +12,39 @@ Accueil
   </div>
   {% else %}
   <div class="not-logged-in-message">
-    <p>Vous n'êtes pas connecté</p>
+    <p>Pour utiliser l'application vous devez vous connecter ou créer un compte.</p>
   </div>
   <div class="button-container">
     <a href="{% url 'login' %}">
       <button class="login-button">Se connecter</button>
     </a>
     <a href="{% url 'signup' %}">
-      <button class="signup-button">Se créer un compte</button>
+      <button class="signup-button">Créer un compte</button>
     </a>
   </div>
   {% endif %}
+  <div class="form-group">
+    <label class="label1">VCubIt, c'est quoi ?</label>
+    <p>
+      VCubIt est une application permettant de simuler la qualité de la couverture offerte par une configuration donnée du réseau VCub dans la métropole de Bordeaux. <br>
+    </p>
+  </div>
+  <div class="form-group">
+    <label class="label1">Les données utilisées</label>
+    <p>
+      Elle utilise des données telles que la taille des stations, leurs informations géographiques, la densité de population ou les équipements publics remarquables. <br>
+      L'analyse se fait au niveau de la maille IRIS, qui est un découpage infracommunal en mailles de moins de 2000 habitants.
+    </p>
+  </div>
+  <div class="form-group">
+    <label class="label1">Les fonctionnalités</label>
+    <p>
+      VCubIt vous permet de
+      <a href="{% url 'config_vcub' %}">créer</a> vous même une nouvelle configuration du réseau VCub,
+      <a href="{% url 'estimate_vcub' %}">d'analyser</a> la qualité de la couverture qu'elle offre et de la
+      <a href="{% url 'view_estimation' %}">visualiser</a> sur une carte. <br>
+      Pour les utilisateurs plus avancés, il est également possible de
+      <a href="{% url 'config_ep' %}">créer</a> de nouvelles configurations d'équipements publics remarquables afin de choisir les plus pertinents dans l'analyse du besoin.
+    </p>
 </div>
 {% endblock %}
