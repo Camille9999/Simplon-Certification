@@ -1,6 +1,6 @@
 .list-group-item {
   background-color: white;
-  margin-top: 12px;
+  margin: 6px 0;
   border-radius: 12px;
   padding: 6px;
   border: None;
@@ -8,7 +8,7 @@
 
 .list-group-item:has(.nav-link.disabled) {
   background-color:  rgb(0, 125, 250);
-  margin-top: 12px;
+  margin: 6px 0;
   border: None;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
@@ -143,4 +143,10 @@ body, .container-fluid {
   border-width: 1px;
   border-color: lightgray;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+
+.accordion .accordion-button:not(.collapsed) {
+  color: #212529; /* Change to the color of unexpanded items */
+  background-color: #fff; /* Change to the background color of unexpanded items */
 }

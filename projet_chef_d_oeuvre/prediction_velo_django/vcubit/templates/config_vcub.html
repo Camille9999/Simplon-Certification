@@ -336,7 +336,7 @@ function saveShapefile(download) {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrftoken  // Django CSRF token
         },
-        body: JSON.stringify({ filename: filename, directory: 'media/saved/vcub_config' })
+        body: JSON.stringify({ filename: filename + '.zip', directory: 'media/saved/vcub_config' })
     }).then(response => response.json()).then(data => {
         if (data.folderExists) {
             alert("Il existe déjà une configuration avec ce nom");

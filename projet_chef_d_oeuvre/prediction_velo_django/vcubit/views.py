@@ -77,7 +77,7 @@ def get_shapefile_data(request):
 def check_folder_exists(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        filename = data.get('filename') + '.zip'
+        filename = data.get('filename')
         directory = data.get('directory')
         if filename:
             print(directory, filename)
