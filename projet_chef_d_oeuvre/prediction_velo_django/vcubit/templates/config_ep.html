@@ -36,11 +36,11 @@ Créer une configuration EP
     </div>
     <div class="form-group">
       <label class="label1">Enregistez votre configuration</label>
-      <input class="form-control" type="text" id="filename" placeholder="Entrer un nom" style="margin-bottom: 20px;">
-      <div class="d-flex justify-content-center">
-        <button class="btn btn-success btn-lg" onclick="calculateEpConfig()" style="margin-right: 20px; margin-top: 10px; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">Enregistrer</button>
-        <p id="status" style="margin-left: 10px;"></p>
+      <div style="display: flex; align-items: center;">
+        <input class="form-control" type="text" id="filename" placeholder="Entrer un nom">
+        <button class="btn btn-success" onclick="calculateEpConfig()" style="margin-left: 10px; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);">Enregistrer</button>
       </div>
+      <p id="status" style="margin-top: 20px; color: white">placeholder</p>
     </div>
   </div>
 </div>
@@ -190,7 +190,7 @@ Créer une configuration EP
         ssthemes.push(key);
       });
 
-      $('#status').html('<i style="color: grey;">Algorithme génétique en cours d\'exécution</i><span id="loading" style="display: inline-block; margin-left: 5px;">&#9679;</span>');
+      $('#status').html('<i style="color: grey;">Algorithme génétique en cours d\'exécution</i><span id="loading" style="display: inline-block; color: grey">&#9679;</span>');
       var loading = setInterval(function() {
         var dots = $('#loading').text().length;
         $('#loading').text('.'.repeat(dots % 3 + 1));
@@ -219,7 +219,7 @@ Créer une configuration EP
         }).then(response => response.json()).then(data => {
             if (data.folderExists) {
             clearInterval(checkFileExists);
-            $('#status').html('<b style="color: black;">Exécution terminée, configuration enregistrée</b> &#10004;');
+            $('#status').html('<p style="color: rgb(70, 70, 70);">Exécution terminée, configuration enregistrée <span style="color: rgb(70, 70, 70);">&#10004;</span></p>');
           }
         });
       }, 1000);  // Check every 1 second

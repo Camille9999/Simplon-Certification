@@ -4,8 +4,7 @@
 
 
 * P1
-- front visualisation
-- front config_ep
+
 
 * P2
 - réparer problèmes carte/table config_vcub
@@ -17,7 +16,15 @@
 - uniformisation chargement shp estimation/config_vcub
 
 
+* P4
+- compare
+
+
+
 == DONE
 - front side menu
 - home page (connecté et non connecté)
 - boutton Télécharger de config_vcub
+- front visualisation
+- KPI/charts visualisation
+- front config_ep

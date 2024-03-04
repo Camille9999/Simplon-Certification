@@ -38,6 +38,14 @@
   fill: white;
 }
 
+.nav-link.not-developed {
+  color: darkgrey;
+}
+
+.sbIcon.not-developed {
+  fill: darkgrey;
+}
+
 .login-container {
   display: flex;
   justify-content: center;
@@ -149,4 +157,20 @@ body, .container-fluid {
 .accordion .accordion-button:not(.collapsed) {
   color: #212529; /* Change to the color of unexpanded items */
   background-color: #fff; /* Change to the background color of unexpanded items */
+}
+
+
+.box {
+  flex: 1;
+  margin: 10px;
+  padding: 10px;
+  text-align: center;
+  color: black;
+  background-color: white;
+  border: 1px solid #ccc; /* Add a border */
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.1); /* Add some shadow for a 3D effect */
+}
+
+.statValue {
+  margin: 8px 0;
 }

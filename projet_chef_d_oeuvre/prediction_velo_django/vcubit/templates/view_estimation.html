@@ -1,28 +1,81 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}
 Visualiser une estimation
 {% endblock %}
 {% block content %}
 
-<div class="form-group row">
+<div class="content" style="height: calc(100vh - 148px);">
 
-  <div class="col-md-6">
-    <label for="vcubSelect">Estimation :</label>
-    <select class="form-control" id="vcubSelect">
-      {% for file in vcub_files %}
-        {% if file == "vcubDefault_epDefault" %}
-          <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
-        {% else %}
-          <option value="{{ file }}">{{ file }}</option>
-        {% endif %}
-      {% endfor %}
-    </select>
+  <div class="col-md-8 d-flex flex-column" style="height: 100%;">
+    <div class="form-group d-flex flex-column" style="flex-grow: 1; margin: 0;">
+      <div style="margin-bottom: 20px;">
+        <select class="form-control" id="vcubSelect">
+          {% for file in vcub_files %}
+            {% if file == "vcubDefault_epDefault" %}
+              <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
+            {% else %}
+              <option value="{{ file }}">{{ file }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div style="flex-grow: 1;">
+        <iframe id="contentFrame" style="width: 100%; height: 100%;"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 d-flex flex-column" style="height: 100%;">
+    <div class="form-group d-flex flex-column" style="padding-top: 12px;">
+      <label class="label1">Interprétation de l'estimation</label>
+      <p>Les scores sont calculés au niveau de la maille et sont généralement compris entre <strong>-1 et 1</strong>.</p>
+      <p>Un score de 0 indique une couverture adéquate de la maille <strong>compte tenu des caractéristiques du réseau</strong>.</p>
+      <p>
+        Un <strong style="color: red;">score positif</strong> indique un <strong style="color: red;">déficit de couverture</strong>,
+        tandis qu'un <strong style="color: green;">score négatif</strong> indique une <strong style="color: green;">couverture supérieure</strong> au besoin.
+      </p>
+      <p style="margin-bottom: 0;">Le champ d'action du réseau est délimité par la bordure noire.</p>
+    </div>
+
+    <!-- <div class="form-group d-flex flex-column" style="flex-grow: 1; margin: 0;">
+      <label class="label1">Distribution des scores des mailles dans le champ d'action du réseau</label>
+      <img id="hist" alt="hist">
+    </div> -->
+
+    <div class="form-group d-flex flex-column" style="padding-top: 12px; padding-bottom: 10px;">
+      <label class="label1" style="margin-bottom: 5px;">KPI du champ d'action de cette configuration</label>
+      <div class="d-flex justify-content-between">
+        <div class="box" id="surfaceBox">
+          <b id="surfaceTitle" style="font-size: small;">Surface couverte</b>
+          <h3 id="surfaceValue" class="statValue"></h3>
+        </div>
+        <div class="box" id="populationBox">
+          <b id="populationTitle" style="font-size: small; white-space: nowrap;">Population couverte</b>
+          <h3 id="populationValue" class="statValue"></h3>
+        </div>
+        <div class="box" id="medianBox">
+          <b id="medianTitle" style="font-size: small;">Score médian</b>
+          <h3 id="medianValue" class="statValue"></h3>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="form-group d-flex flex-column" style="padding-top: 12px; padding-bottom: 0;">
+      <label class="label1" style="margin-bottom: 5px;">Couverture des mailles dans le champ d'action</label>
+      <img id="bars" alt="bars">
+    </div>
+
+
+    </div>
   </div>
 
 </div>
 
 
-<iframe id="contentFrame" style="height:500px;width:800px;"></iframe>
+
+
 
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -32,28 +85,76 @@ Visualiser une estimation
 
 <script>
 
-  window.onload = function() {
-    var urlParams = new URLSearchParams(window.location.search);
-    var vcub_config = urlParams.get('vcub_config');
-    var ep_config = urlParams.get('ep_config');
+window.onload = function() {
+  var urlParams = new URLSearchParams(window.location.search);
+  var vcub_config = urlParams.get('vcub_config');
+  var ep_config = urlParams.get('ep_config');
 
-    var selectedFile;
-    if (vcub_config && ep_config) {
-      selectedFile = vcub_config.slice(0, -4) + '_' + ep_config.slice(0, -5);
-    } else {
-      selectedFile = 'vcubDefault_epDefault';
-    }
+  var selectedFile;
+  if (vcub_config && ep_config) {
+    selectedFile = vcub_config.slice(0, -4) + '_' + ep_config.slice(0, -5);
+  } else {
+    selectedFile = 'vcubDefault_epDefault';
+  }
 
-    document.getElementById('vcubSelect').value = selectedFile;
-    var filePath = '/media/saved/estimations/' + selectedFile + '/' + selectedFile + '.html';
-    document.getElementById('contentFrame').src = filePath;
-  };
+  updatePage(selectedFile);
 
   document.getElementById('vcubSelect').addEventListener('change', function() {
-    var selectedFile = this.value;
-    var filePath = '/media/saved/estimations/' + selectedFile + '/' + selectedFile + '.html';
-    document.getElementById('contentFrame').src = filePath;
+    updatePage(this.value);
   });
+};
+
+function updatePage(selectedFile) {
+  document.getElementById('vcubSelect').value = selectedFile;
+  var filePath = '/media/saved/estimations/' + selectedFile + '/';
+  document.getElementById('contentFrame').src = filePath + selectedFile + '.html';
+  document.getElementById('bars').src = filePath + 'bars.png'
+  fetch(filePath + 'stats.json')
+  .then(response => response.json())
+  .then(data => {
+    var surfaceValue = data.pctSurface;
+    var populationValue = data.pctPop;
+    var medianValue = data.medianScore;
+
+    document.getElementById('surfaceValue').innerHTML = '<strong>' + surfaceValue + '%</strong>';
+    document.getElementById('populationValue').innerHTML = '<strong>' + populationValue + '%</strong>';
+    document.getElementById('medianValue').innerHTML = '<strong>' + medianValue + '</strong>';
+
+    document.getElementById('surfaceValue').style.color = getSurfaceColor(surfaceValue);
+    document.getElementById('populationValue').style.color = getPopulationColor(populationValue);
+    document.getElementById('medianValue').style.color = getMedianColor(medianValue);
+  });
+}
+
+function getSurfaceColor(value) {
+  if (value < 20) {
+    return 'red';
+  } else if (value < 40) {
+    return 'gold';
+  } else {
+    return 'green';
+  }
+}
+
+function getPopulationColor(value) {
+  if (value < 50) {
+    return 'red';
+  } else if (value < 75) {
+    return 'gold';
+  } else {
+    return 'green';
+  }
+}
+
+function getMedianColor(value) {
+  if (value > 0.1) {
+    return 'red';
+  } else if (value > 0.05) {
+    return 'gold';
+  } else {
+    return 'green';
+  }
+}
 
 </script>
 

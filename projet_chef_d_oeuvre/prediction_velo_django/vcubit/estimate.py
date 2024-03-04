@@ -7,6 +7,9 @@ from math import pi, acos, sqrt
 import json
 import folium
 from pygad import GA
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import seaborn as sns
 
 from .gdf_to_shp import gdf_to_shp_zip
 
@@ -54,7 +57,7 @@ def scale_column(gdf : gpd.GeoDataFrame, column : str) -> gpd.GeoDataFrame:
 
 # Calcule le coefficient multiplicatif du besoin des mailles
 def calculate_coeffs(gdf_density : gpd.GeoDataFrame,
-                    gdf_vcub : gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+                     gdf_vcub : gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     print("Calcul du coefficient multiplicatif du besoin des mailles...", end='')
     x = (gdf_vcub['geometry'].x * gdf_vcub['taille']).sum() / gdf_vcub['taille'].sum()
@@ -213,6 +216,9 @@ def estimate_coverage(vcub_config, ep_config):
 
     bench_points = gpd.GeoDataFrame({'geometry': [Point(428000, 6423000), Point(428000, 6423000)], 'score': [-1, 1]}, crs=2154)
     gdf_density = pd.concat([gdf_density, bench_points], ignore_index=True)
+    gdf_density['surface'] = gdf_density.to_crs(2154).geometry.area
+    gdf_density_filtered = gdf_density[gdf_density.coeff > 0.4]
+    champ_action = gpd.GeoDataFrame(geometry=[gdf_density_filtered.geometry.unary_union], crs=2154)
 
     m = gdf_density.explore(
         column="score",
@@ -226,7 +232,60 @@ def estimate_coverage(vcub_config, ep_config):
         name="density",
     )
 
+    m = champ_action.explore(m=m, name="champ_action", style_kwds={
+            'fillOpacity': 0,
+            'color': 'black',
+            'weight': 3,
+            'interactive' : False,
+        })
+
+    m = gpd.read_file(f'media/saved/vcub_config/{vcub_config}').to_crs(2154).explore(m=m, name="vcub", color='red')
+
     folium.TileLayer("Stamen Toner").add_to(m)
     folium.LayerControl().add_to(m)
 
     m.save(f'{shp_folder_path}/{name}.html')
+
+    # plt.figure()
+    # sns.histplot(gdf_density_filtered.score, fill=True, kde=True)
+    # plt.axvline(gdf_density_filtered.score.median(), color='red', label=f'médiane : {round(gdf_density_filtered.score.median(), 4)}')
+    # plt.legend()
+    # plt.grid()
+    # plt.tight_layout()
+    # plt.savefig(f'{shp_folder_path}/hist.png')
+    # plt.close()
+
+    def calc_stats(mini, maxi):
+        pct = 100 * gdf_density_filtered[(gdf_density_filtered.score > mini) & (gdf_density_filtered.score < maxi)].score.count() / len(gdf_density_filtered)
+        return round(pct, 2)
+
+    stats = {
+        "tbon" : calc_stats(gdf_density_filtered.score.min(), 0),
+        "bon" : calc_stats(0, 0.1),
+        "abon" : calc_stats(0.1, 0.2),
+        "moyen" : calc_stats(0.2, 0.3),
+        "insuf" : calc_stats(0.3, 0.5),
+        "tinsuf" : calc_stats(0.5, gdf_density_filtered.score.max()),
+        "pctSurface" : round(100 * gdf_density_filtered.surface.sum() / gdf_density.surface.sum(), 2),
+        "pctPop" : round(100 * (gdf_density_filtered.density * gdf_density_filtered.surface / 1E06).sum() / (gdf_density.density * gdf_density.surface / 1E06).sum(), 2),
+        "medianScore" : round(gdf_density_filtered.score.median(), 4)
+    }
+
+    labels = ['Très bonne', 'Bonne', 'Assez bonne', 'Moyenne', 'Insuffisante', 'Très insuffisante']
+    colors = ['green', 'limegreen', 'yellow', 'orange', 'red', 'darkred']
+    ranges = ['score ≤ 0', '0 < score ≤ 0.1', '0.1 < score ≤ 0.2', '0.2 < score ≤ 0.3', '0.3 < score ≤ 0.5', 'score > 0.5']
+    patches = [mpatches.Patch(color=colors[i], label=ranges[i]) for i in range(len(labels))]
+    values = [stats[key] for key in list(stats.keys())[:6]]
+
+    plt.figure(figsize=(6, 3))
+    plt.barh(labels, values, color=colors)
+    plt.xlim(0, max(50, max(values)))
+    plt.xlabel('%')
+    plt.legend(handles=patches)
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+    plt.savefig(f'{shp_folder_path}/bars.png')
+    plt.close()
+
+    with open(f'{shp_folder_path}/stats.json', 'w') as f:
+        json.dump(stats, f)
