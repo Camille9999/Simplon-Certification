@@ -5,6 +5,8 @@ Créer une configuration VCUB
 {% endblock %}
 {% block content %}
 
+<body data-username="{{ request.user.username }}">
+
 <div class="content">
   <div class="col-md-9 d-flex flex-column">
     <div id="shapefile-table-container" style="margin-bottom: 15px;"></div>
@@ -13,12 +15,12 @@ Créer une configuration VCUB
   <div class="col-md-3">
     <div class="form-group">
       <label class="label1" for="vcubSelect">Choisissez votre configuration<br>VCUB de départ</label>
-      <select class="form-control" id="vcubSelect" onchange="updateIframe(this.value)">
+      <select class="form-control" id="vcubSelect">
         {% for file in vcub_files %}
-          {% if file == "vcubDefault.zip" %}
-            <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
+          {% if file.name == "vcubDefault.zip" %}
+            <option value="{{ file.path }}" selected>Défaut (configuration réelle)</option>
           {% else %}
-            <option value="{{ file }}">{{ file|slice:":-4" }}</option>
+            <option value="{{ file.path }}">{{ file.name|cut:".zip" }}</option>
           {% endif %}
         {% endfor %}
       </select>
@@ -33,9 +35,9 @@ Créer une configuration VCUB
         Après avoir sélectionné et validé une configuration de départ vous pouvez :
         <ul>
           <li>modifier ou supprimer une station,</li>
-          <li>créer une nouvelle station en cliquant sur la carte puis renseignant les champs nom et taille,</li>
+          <li>créer une nouvelle station en cliquant sur la carte puis en renseignant les champs <i>nom</i> et <i>taille</i>,</li>
           <li>réinitialiser la carte (toute modification sera perdue)</li>
-          <li>enregistrer une nouvelle configuration</li>
+          <li>enregistrer (et télécharger) une nouvelle configuration</li>
         </ul>
       </p>
     </div>
@@ -64,21 +66,25 @@ Créer une configuration VCUB
 }
 </style>
 
+<script type="text/javascript">
+  var vcubFiles = {{ vcub_files|safe }};
+</script>
+
 
 <script>
 
+var username = document.body.getAttribute('data-username');
+
 $(document).ready(function() {
-  var vcubDir = '/media/saved/vcub_config';
+  var vcubDir = '/media/saved/vcub_config/' + username;
   $('#vcubSelect').change(function() {
     var selectedOption = $(this).val();
   });
 });
 
 function validateSelection() {
-  console.log("validateSelection function called");
   var selectedOption = $('#vcubSelect').val();
-  // Load shapefile data when the selection is validated
-  loadShapefileData(selectedOption);
+  loadShapefileData(selectedOption.substring(1));
   document.getElementById('vcubSelect').disabled = true;
   document.getElementById('validateButton').disabled = true;
   document.getElementById('resetButton').disabled = false;
@@ -154,12 +160,12 @@ var table = new Tabulator("#shapefile-table-container", {
 
 var highlightedRow;
 
-function loadShapefileData(directory) {
+function loadShapefileData(file_path) {
   $.ajax({
     url: '/get_shapefile_data/',
     type: 'GET',
     data: {
-      'directory': directory
+      'file_path': file_path
     },
     success: function(data) {
       // Update table data
@@ -329,64 +335,62 @@ function saveShapefile(download) {
       return;
     }
 
-    // Check if folder with filename already exists
-    fetch('/check_folder_exists/', {
+    // Check if file with filename already exists
+    var fileExists = checkFileExists(filename);
+    if (fileExists) {
+        alert("Il existe déjà une configuration avec ce nom");
+        return;
+    }
+
+    // Save shapefile
+    var geojsonData = {
+        type: 'FeatureCollection',
+        features: tableData.map(row => ({
+            type: 'Feature',
+            properties: row,
+            geometry: {
+                type: row.type,
+                coordinates: row.coordinates
+            }
+        }))
+    };
+
+    fetch('/save_shapefile/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrftoken  // Django CSRF token
         },
-        body: JSON.stringify({ filename: filename + '.zip', directory: 'media/saved/vcub_config' })
-    }).then(response => response.json()).then(data => {
-        if (data.folderExists) {
-            alert("Il existe déjà une configuration avec ce nom");
-            return;
+        body: JSON.stringify({ geojson: geojsonData, filename: filename, download: download })
+    }).then(response => {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            return response.json().then(data => {
+                console.log(data.status);
+            });
+        } else if (contentType && contentType.indexOf("application/zip") !== -1) {
+            return response.blob().then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename + '.zip';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            });
+        } else {
+            console.log('Unexpected content type:', contentType);
         }
-
-        // Save shapefile
-        var geojsonData = {
-            type: 'FeatureCollection',
-            features: tableData.map(row => ({
-                type: 'Feature',
-                properties: row,
-                geometry: {
-                    type: row.type,
-                    coordinates: row.coordinates
-                }
-            }))
-        };
-
-        fetch('/save_shapefile/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken  // Django CSRF token
-            },
-            body: JSON.stringify({ geojson: geojsonData, filename: filename, download: download })
-        }).then(response => {
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                return response.json().then(data => {
-                    console.log(data.status);
-                });
-            } else if (contentType && contentType.indexOf("application/zip") !== -1) {
-                return response.blob().then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.style.display = 'none';
-                    a.href = url;
-                    a.download = filename + '.zip';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                });
-            } else {
-                console.log('Unexpected content type:', contentType);
-            }
-        }).catch((error) => console.error('Error:', error));
-
-    });
+    }).catch((error) => console.error('Error:', error));
 }
+
+function checkFileExists(filename) {
+  var filenames = vcubFiles.map(file => file.name);
+  return filenames.includes(filename + '.zip');
+}
+
+
 
 </script>
 

@@ -5,17 +5,19 @@ Visualiser une estimation
 {% endblock %}
 {% block content %}
 
+<body data-username="{{ request.user.username }}"></body>
+
 <div class="content" style="height: calc(100vh - 148px);">
 
   <div class="col-md-8 d-flex flex-column" style="height: 100%;">
     <div class="form-group d-flex flex-column" style="flex-grow: 1; margin: 0;">
       <div style="margin-bottom: 20px;">
-        <select class="form-control" id="vcubSelect">
+        <select class="form-control" id="vcubSelect" aria-label="Estimation">
           {% for file in vcub_files %}
-            {% if file == "vcubDefault_epDefault" %}
-              <option value="{{ file }}" selected>Défaut (configuration réelle)</option>
+            {% if file.name == "vcubDefault_epDefault" %}
+              <option value="{{ file.path }}" selected>Défaut (configuration réelle)</option>
             {% else %}
-              <option value="{{ file }}">{{ file }}</option>
+              <option value="{{ file.path }}">{{ file.name|cut:".zip" }}</option>
             {% endif %}
           {% endfor %}
         </select>
@@ -27,6 +29,7 @@ Visualiser une estimation
   </div>
 
   <div class="col-md-4 d-flex flex-column" style="height: 100%;">
+
     <div class="form-group d-flex flex-column" style="padding-top: 12px;">
       <label class="label1">Interprétation de l'estimation</label>
       <p>Les scores sont calculés au niveau de la maille et sont généralement compris entre <strong>-1 et 1</strong>.</p>
@@ -61,21 +64,14 @@ Visualiser une estimation
       </div>
     </div>
 
-
     <div class="form-group d-flex flex-column" style="padding-top: 12px; padding-bottom: 0;">
       <label class="label1" style="margin-bottom: 5px;">Couverture des mailles dans le champ d'action</label>
       <img id="bars" alt="bars">
     </div>
 
-
-    </div>
   </div>
 
 </div>
-
-
-
-
 
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -85,6 +81,8 @@ Visualiser une estimation
 
 <script>
 
+var username = document.body.getAttribute('data-username');
+
 window.onload = function() {
   var urlParams = new URLSearchParams(window.location.search);
   var vcub_config = urlParams.get('vcub_config');
@@ -92,9 +90,9 @@ window.onload = function() {
 
   var selectedFile;
   if (vcub_config && ep_config) {
-    selectedFile = vcub_config.slice(0, -4) + '_' + ep_config.slice(0, -5);
+    selectedFile = '/media/saved/estimations/' + username + '/' + vcub_config.split('/').pop().slice(0, -4) + '_' + ep_config.split('/').pop().slice(0, -5);
   } else {
-    selectedFile = 'vcubDefault_epDefault';
+    selectedFile = '/media/saved/estimations/default/vcubDefault_epDefault';
   }
 
   updatePage(selectedFile);
@@ -105,9 +103,11 @@ window.onload = function() {
 };
 
 function updatePage(selectedFile) {
+  console.log(selectedFile)
   document.getElementById('vcubSelect').value = selectedFile;
-  var filePath = '/media/saved/estimations/' + selectedFile + '/';
-  document.getElementById('contentFrame').src = filePath + selectedFile + '.html';
+  var filePath = selectedFile + '/';
+  var file = selectedFile.split('/').pop()
+  document.getElementById('contentFrame').src = filePath + file + '.html';
   document.getElementById('bars').src = filePath + 'bars.png'
   fetch(filePath + 'stats.json')
   .then(response => response.json())

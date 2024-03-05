@@ -29,16 +29,32 @@ from shapely.geometry import Point
 def home(request):
     return render(request, 'home.html', {'title': 'Accueil'})
 
+
+def get_user_files(user, base_directory, estimation=False):
+    user_directory = os.path.join(base_directory, user.username)
+    files = []
+    for directory in [base_directory + '/default' * estimation, user_directory]:
+        if os.path.exists(directory):
+            for file in os.listdir(directory):
+                if file.endswith('.zip') or file.endswith('.json') or estimation:
+                    file_name = os.path.basename(file)
+                    files.append({'path': '/' + os.path.join(directory, file_name), 'name': file_name})
+    return files
+
+
 @login_required
 @xframe_options_sameorigin
 def estimate_vcub(request):
-    vcub_files = os.listdir(os.path.join(settings.MEDIA_ROOT, 'saved/vcub_config'))
-    ep_files = os.listdir(os.path.join(settings.MEDIA_ROOT, 'saved/ep_config'))
+    base_directory_vcub = 'media/saved/vcub_config'
+    base_directory_ep = 'media/saved/ep_config'
+    vcub_files = get_user_files(request.user, base_directory_vcub)
+    ep_files = get_user_files(request.user, base_directory_ep)
     return render(request, 'estimate_vcub.html', {'title': 'Faire une estimation', 'vcub_files': vcub_files, 'ep_files': ep_files})
 
 @login_required
 def view_estimation(request):
-    vcub_files = os.listdir(os.path.join(settings.MEDIA_ROOT, 'saved/estimations'))
+    base_directory = 'media/saved/estimations'
+    vcub_files = get_user_files(request.user, base_directory, estimation=True)
     return render(request, 'view_estimation.html', {'title': 'Visualiser une estimation', 'vcub_files': vcub_files})
 
 @login_required
@@ -47,7 +63,8 @@ def compare(request):
 
 @login_required
 def config_vcub(request):
-    vcub_files = os.listdir(os.path.join(settings.MEDIA_ROOT, 'saved/vcub_config'))
+    base_directory = 'media/saved/vcub_config'
+    vcub_files = get_user_files(request.user, base_directory)
     return render(request, 'config_vcub.html', {'title': 'Créer une configuration VCUB', 'vcub_files': vcub_files})
 
 @login_required
@@ -56,16 +73,14 @@ def config_ep(request):
 
 
 
+@login_required
 def get_shapefile_data(request):
-    directory = 'media/saved/vcub_config'
+    file_path = request.GET.get('file_path')
+    if not os.path.exists(file_path):
+        return JsonResponse({'error': 'File does not exist'})
+
+    gdf = gpd.read_file(file_path)
     searchTerm = request.GET.get('searchTerm')
-    for file in os.listdir(directory):
-        if file.endswith('.zip'):
-            shapefile_path = os.path.join(directory, file)
-            break
-    else:
-        return JsonResponse({'error': 'No shapefile found in the given directory'})
-    gdf = gpd.read_file(shapefile_path)
     if searchTerm:
         gdf = gdf[gdf.apply(lambda row: row.astype(str).str.contains(searchTerm).any(), axis=1)]
     data = json.loads(gdf.to_json())
@@ -80,7 +95,6 @@ def check_folder_exists(request):
         filename = data.get('filename')
         directory = data.get('directory')
         if filename:
-            print(directory, filename)
             file_path = os.path.join(directory, filename)
             folder_exists = os.path.exists(file_path)
             return JsonResponse({'folderExists': folder_exists})
@@ -91,6 +105,7 @@ def check_folder_exists(request):
 
 
 @csrf_exempt
+@login_required
 def save_shapefile(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -107,7 +122,7 @@ def save_shapefile(request):
         gdf['taille'] = gdf['taille'].apply(int).copy()
         gdf = gdf.set_crs(4326)
 
-        directory = 'media/saved/vcub_config'
+        directory = f'media/saved/vcub_config/{request.user.username}'
         name = data['filename']
 
         if not os.path.exists(f"{directory}/{name}.zip"):
@@ -134,6 +149,7 @@ class EstimateCoverage(FormView):
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
+        self.username = request.user.username
         if form.is_valid():
             self.vcub_config = form.cleaned_data['vcub_config']
             self.ep_config = form.cleaned_data['ep_config']
@@ -142,7 +158,7 @@ class EstimateCoverage(FormView):
             return self.form_invalid(form)
 
     def form_valid(self, form):
-        estimate_coverage(self.vcub_config, self.ep_config)
+        estimate_coverage(self.vcub_config[1:], self.ep_config[1:], self.username)
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -162,7 +178,9 @@ def calculate_ep_config_view(request):
             data = json.loads(request.body)
             filename = data['filename']
             ssthemes = data['ssthemes']
-            calculate_ep_config(ssthemes, filename)
+            os.makedirs(f'media/saved/ep_config/{request.user.username}', exist_ok=True)
+            calculate_ep_config(ssthemes, filename, request.user.username)
             return JsonResponse({'status': 'success'})
     except Exception as e:
+        print(e)
         return JsonResponse({'status': 'error', 'message': str(e), 'trace': traceback.format_exc()})

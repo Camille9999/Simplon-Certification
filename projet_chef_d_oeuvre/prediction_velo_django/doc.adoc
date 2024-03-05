@@ -4,11 +4,14 @@
 
 
 * P1
+- feedback problem signup/login
+- feedback boutton Enregistrer (config_vcub)
+- gestion fichiers (suppression)
+- icones pages
 
 
 * P2
 - réparer problèmes carte/table config_vcub
-- feedback boutton Enregistrer
 
 
 * P3

@@ -10,6 +10,8 @@ Créer une configuration EP
 {% endblock %}
 {% block content %}
 
+<body data-username="{{ request.user.username }}"></body>
+
 <div class="content">
 
   <div class="col-md-8 d-flex flex-column">
@@ -142,89 +144,91 @@ Créer une configuration EP
 
 <script>
 
-  function getCookie(name) {
-      var cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-          var cookies = document.cookie.split(';');
-          for (var i = 0; i < cookies.length; i++) {
-              var cookie = cookies[i].trim();
-              // Does this cookie string begin with the name we want?
-              if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                  break;
-              }
-          }
-      }
-      return cookieValue;
+var username = document.body.getAttribute('data-username');
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+var csrftoken = getCookie('csrftoken');
+
+function calculateEpConfig() {
+  var filename = $('#filename').val();
+  if (filename == '') {
+    alert("Veuillez renseigner un nom avant d'enregistrer une configuration");
+    return;
   }
-
-  var csrftoken = getCookie('csrftoken');
-
-  function calculateEpConfig() {
-    var filename = $('#filename').val();
-    if (filename == '') {
-      alert("Veuillez renseigner un nom avant d'enregistrer une configuration");
-      return;
+  var checkedSsthemes = $('.sstheme:checked');
+  if (checkedSsthemes.length == 0) {
+    alert("Veuillez sélectionner au moins un élement");
+    return;
+  }
+  fetch('/check_folder_exists/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({ filename: filename + '.json', directory: 'media/saved/ep_config/' + username})
+    }).then(response => response.json()).then(data => {
+        if (data.folderExists) {
+            alert("Il existe déjà une configuration avec ce nom");
+            return;
     }
-    var checkedSsthemes = $('.sstheme:checked');
-    if (checkedSsthemes.length == 0) {
-      alert("Veuillez sélectionner au moins un élement");
-      return;
-    }
-    fetch('/check_folder_exists/', {
+    var ssthemes = [];
+    checkedSsthemes.each(function(){
+      var labelText = $(this).parent().text();
+      var key = labelText.split(' - ')[0].trim();
+      ssthemes.push(key);
+    });
+
+    $('#status').html('<i style="color: grey;">Algorithme génétique en cours d\'exécution</i><span id="loading" style="display: inline-block; color: grey">&#9679;</span>');
+    var loading = setInterval(function() {
+      var dots = $('#loading').text().length;
+      $('#loading').text('.'.repeat(dots % 3 + 1));
+    }, 500);
+
+    fetch('/calculate_ep_config/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify({
+        'filename': filename,
+        'ssthemes': ssthemes
+      })
+    });
+
+    var checkFileExists = setInterval(function() {
+      fetch('/check_folder_exists/', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json',
               'X-CSRFToken': csrftoken
           },
-          body: JSON.stringify({ filename: filename + '.json', directory: 'media/saved/ep_config' })
+          body: JSON.stringify({ filename: filename + '.json', directory: 'media/saved/ep_config/' + username})
       }).then(response => response.json()).then(data => {
           if (data.folderExists) {
-              alert("Il existe déjà une configuration avec ce nom");
-              return;
-      }
-      var ssthemes = [];
-      checkedSsthemes.each(function(){
-        var labelText = $(this).parent().text();
-        var key = labelText.split(' - ')[0].trim();
-        ssthemes.push(key);
+          clearInterval(checkFileExists);
+          $('#status').html('<p style="color: rgb(70, 70, 70);">Exécution terminée, configuration enregistrée <span style="color: rgb(70, 70, 70);">&#10004;</span></p>');
+        }
       });
-
-      $('#status').html('<i style="color: grey;">Algorithme génétique en cours d\'exécution</i><span id="loading" style="display: inline-block; color: grey">&#9679;</span>');
-      var loading = setInterval(function() {
-        var dots = $('#loading').text().length;
-        $('#loading').text('.'.repeat(dots % 3 + 1));
-      }, 500);
-
-      fetch('/calculate_ep_config/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({
-          'filename': filename,
-          'ssthemes': ssthemes
-        })
-      });
-
-      var checkFileExists = setInterval(function() {
-        fetch('/check_folder_exists/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({ filename: filename + '.json', directory: 'media/saved/ep_config' })
-        }).then(response => response.json()).then(data => {
-            if (data.folderExists) {
-            clearInterval(checkFileExists);
-            $('#status').html('<p style="color: rgb(70, 70, 70);">Exécution terminée, configuration enregistrée <span style="color: rgb(70, 70, 70);">&#10004;</span></p>');
-          }
-        });
-      }, 1000);  // Check every 1 second
-    })
-  }
+    }, 1000);  // Check every 1 second
+  })
+}
 
 </script>
 

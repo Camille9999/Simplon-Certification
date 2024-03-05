@@ -163,9 +163,10 @@ def calculate_score(gdf_density : gpd.GeoDataFrame, subset, weigths) -> gpd.GeoD
     return gdf_density_with_score
 
 
-def preprocessing(ssthemes, vcub_config='vcubDefault.zip'):
+def preprocessing(ssthemes, vcub_config='media/base/vcub/vcub.shp'):
 
-    gdf_vcub = gpd.read_file(f'media/saved/vcub_config/{vcub_config}').to_crs(2154)
+    # gdf_vcub = gpd.read_file(f'media/saved/vcub_config/{vcub_config}').to_crs(2154)
+    gdf_vcub = gpd.read_file(vcub_config).to_crs(2154)
     gdf_eqpub = gpd.read_file('media/base/eqpub').to_crs(2154)
     gdf_density = gpd.read_file('media/base/density').to_crs(2154)
 
@@ -180,7 +181,7 @@ def preprocessing(ssthemes, vcub_config='vcubDefault.zip'):
     return gdf_density
 
 
-def calculate_ep_config(ep_selection, config_name):
+def calculate_ep_config(ep_selection, config_name, username):
 
     nb_gen = 20 + 5 * len(ep_selection)
 
@@ -192,15 +193,14 @@ def calculate_ep_config(ep_selection, config_name):
         'weights': weights
     }
 
-    with open(f'media/saved/ep_config/{config_name}.json', 'w') as json_file:
+    with open(f'media/saved/ep_config/{username}/{config_name}.json', 'w') as json_file:
         json.dump(data, json_file)
 
 
 
-def estimate_coverage(vcub_config, ep_config):
+def estimate_coverage(vcub_config, ep_config, username):
 
-    ep_path = f'media/saved/ep_config/{ep_config}'
-    with open(ep_path, 'r') as f:
+    with open(ep_config, 'r') as f:
         data = json.load(f)
 
     ssthemes = data['ssthemes']
@@ -209,8 +209,8 @@ def estimate_coverage(vcub_config, ep_config):
     gdf_density = preprocessing(ssthemes, vcub_config=vcub_config)
     gdf_density = calculate_score(gdf_density, ssthemes, weights)
 
-    name = f'{vcub_config[:-4]}_{ep_config[:-5]}'
-    shp_folder_path = f'media/saved/estimations/{name}'
+    name = f"{vcub_config.split('/')[-1][:-4]}_{ep_config.split('/')[-1][:-5]}"
+    shp_folder_path = f'media/saved/estimations/{username}/{name}'
 
     gdf_to_shp_zip(gdf_density.to_crs(4326), name, shp_folder_path)
 
@@ -239,7 +239,7 @@ def estimate_coverage(vcub_config, ep_config):
             'interactive' : False,
         })
 
-    m = gpd.read_file(f'media/saved/vcub_config/{vcub_config}').to_crs(2154).explore(m=m, name="vcub", color='red')
+    m = gpd.read_file(vcub_config).to_crs(2154).explore(m=m, name="vcub", color='red')
 
     folium.TileLayer("Stamen Toner").add_to(m)
     folium.LayerControl().add_to(m)

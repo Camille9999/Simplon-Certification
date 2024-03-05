@@ -4,7 +4,7 @@ projet_chef_d_oeuvre/prediction_velo
 !**/media/base
 !**/media/ep_config/epDefault.json
 !**/media/vcub_config/vcubDefault.zip
-!**/media/estimations/vcubDefault_epDefault
+!**/media/estimations/default
 
 # Cache
 **/__pycache__
