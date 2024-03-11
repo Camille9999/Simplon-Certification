@@ -71,6 +71,13 @@ def config_vcub(request):
 def config_ep(request):
     return render(request, 'config_ep.html', {'title': 'Créer une configuration EP'})
 
+@login_required
+def monitor(request):
+    base_directory_ep = 'media/saved/ep_config'
+    ep_files = get_user_files(request.user, base_directory_ep)
+    selected_file = request.GET.get('selectedFile', 'epDefault.json')
+    return render(request, 'monitor.html', {'title': 'Monitoring', 'ep_files' : ep_files, 'selected_file': selected_file})
+
 
 
 @login_required

@@ -183,7 +183,7 @@ function calculateEpConfig() {
         },
         body: JSON.stringify({ filename: filename + '.json', directory: 'media/saved/ep_config/' + username})
     }).then(response => response.json()).then(data => {
-        if (data.folderExists) {
+        if (data.folderExists || filename == 'epDefault.json') {
             alert("Il existe déjà une configuration avec ce nom");
             return;
     }
@@ -194,39 +194,29 @@ function calculateEpConfig() {
       ssthemes.push(key);
     });
 
-    $('#status').html('<i style="color: grey;">Algorithme génétique en cours d\'exécution</i><span id="loading" style="display: inline-block; color: grey">&#9679;</span>');
+    $('#status').html('<i style="color: grey;">Algorithme génétique en cours d\'exécution</i><span id="loading" style="display: inline-block; color: grey">.</span>');
     var loading = setInterval(function() {
       var dots = $('#loading').text().length;
       $('#loading').text('.'.repeat(dots % 3 + 1));
     }, 500);
 
-    fetch('/calculate_ep_config/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}'
-      },
-      body: JSON.stringify({
-        'filename': filename,
-        'ssthemes': ssthemes
-      })
+
+    $.ajax({
+        type: 'POST',
+        url: '/calculate_ep_config/',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        data: JSON.stringify({
+            'filename': filename,
+            'ssthemes': ssthemes
+        }),
+        success: function() {
+            window.location.href = '/monitoring/?selectedFile=' + filename;
+        }
     });
 
-    var checkFileExists = setInterval(function() {
-      fetch('/check_folder_exists/', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': csrftoken
-          },
-          body: JSON.stringify({ filename: filename + '.json', directory: 'media/saved/ep_config/' + username})
-      }).then(response => response.json()).then(data => {
-          if (data.folderExists) {
-          clearInterval(checkFileExists);
-          $('#status').html('<p style="color: rgb(70, 70, 70);">Exécution terminée, configuration enregistrée <span style="color: rgb(70, 70, 70);">&#10004;</span></p>');
-        }
-      });
-    }, 1000);  // Check every 1 second
   })
 }
 

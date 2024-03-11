@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
 
+from .genetic_algorithm import GeneticAlgorithm
 from .gdf_to_shp import gdf_to_shp_zip
 
 
@@ -104,57 +105,81 @@ def eqpub_in_polygon(gdf_density : gpd.GeoDataFrame,
 
 
 # Calcule les poids associés aux catégories de eqpub sélectionnés
-def calculate_weights(gdf_density : gpd.GeoDataFrame,
-                      subset, num_generations=50, sol_per_pop=200,
-                      num_parents_mating=50, parent_selection_type='sus',
-                      crossover_type='uniform', crossover_probability=0.9,
-                      mutation_type='adaptive', mutation_probability=[0.25, 0.05]) -> list:
+# def calculate_weights(gdf_density : gpd.GeoDataFrame,
+#                       subset, num_generations=50, sol_per_pop=200,
+#                       num_parents_mating=50, parent_selection_type='sus',
+#                       crossover_type='uniform', crossover_probability=0.9,
+#                       mutation_type='adaptive', mutation_probability=[0.25, 0.05]) -> list:
 
-    gdf_special = gdf_density[(gdf_density['difference'] < 0) & (gdf_density[subset].sum(axis=1) != 0)]
-    threshold = gdf_special['difference'].describe()['50%']
-    gdf_special = gdf_special[gdf_special['difference'] <= threshold]
+#     gdf_special = gdf_density[(gdf_density['difference'] < 0) & (gdf_density[subset].sum(axis=1) != 0)]
+#     threshold = gdf_special['difference'].describe()['50%']
+#     gdf_special = gdf_special[gdf_special['difference'] <= threshold]
 
-    def fitness_func(ga_instance, solution, solution_idx) -> float:
-        bonus = np.dot(gdf_special[subset], solution)
-        score = (gdf_special['density_s'] + bonus) * gdf_special['coeff'] - gdf_special['inf_vcub_s']
-        fitness = 1 / abs(score).mean()
-        return fitness
+#     nb_selected = len(gdf_special)
+#     mean_score_selected = abs((gdf_special['density_s']) * gdf_special['coeff'] - gdf_special['inf_vcub_s']).mean()
 
-    def on_generation(ga_instance):
-        gen = ga_instance.generations_completed
-        print(f'Progress: {round(100 * gen / num_generations)}%\n{gen}/{num_generations} generations completed', end='')
-        if gen != num_generations: print('\033[F\033[F')
+#     best_fitness, mean_fitness = [], []
+#     ga_instance.convergence_counter = 0
+#     ga_instance.last_generation_fitness = None
 
-    print("--- Algorithme génétique en cours d'exécution ---")
+#     def fitness_func(ga_instance, solution, solution_idx) -> float:
+#         bonus = np.dot(gdf_special[subset], solution)
+#         score = (gdf_special['density_s'] + bonus) * gdf_special['coeff'] - gdf_special['inf_vcub_s']
+#         fitness = 1 / abs(score).mean()
+#         return fitness
 
-    ga_instance = GA(
-        num_generations=num_generations,
-        num_parents_mating=num_parents_mating,
-        fitness_func=fitness_func,
-        sol_per_pop=sol_per_pop,
-        num_genes=len(subset),
-        gene_type=float,
-        init_range_low=0,
-        init_range_high=1,
-        parent_selection_type=parent_selection_type,
-        crossover_type=crossover_type,
-        crossover_probability=crossover_probability,
-        mutation_type=mutation_type,
-        mutation_probability=mutation_probability,
-        gene_space={'low' : 0, 'high' : 1},
-        on_generation=on_generation
-    )
+#     def on_generation(ga_instance):
+#         gen = ga_instance.generations_completed
+#         print(f'Progress: {round(100 * gen / num_generations)}%\n{gen}/{num_generations} generations completed', end='')
+#         if gen != num_generations: print('\033[F\033[F')
+#         current_fitness = ga_instance.best_solution()[1]
+#         best_fitness.append(1 / current_fitness)
+#         mean_fitness = sum(ga_instance.last_generation_fitness) / len(ga_instance.last_generation_fitness)
+#         mean_fitness.append(1 / mean_fitness)
 
-    ga_instance.run()
+#         if abs(current_fitness - ga_instance.last_generation_fitness) < 0.01:
+#             ga_instance.convergence_counter += 1
+#         else:
+#             ga_instance.convergence_counter = 0
 
-    print("\n--- Exécution terminée ---")
+#         if ga_instance.convergence_counter > 10:
+#             ga_instance.stop()
 
-    return list(ga_instance.best_solution()[0])
+#         ga_instance.last_generation_fitness = current_fitness
+
+
+#     print("--- Algorithme génétique en cours d'exécution ---")
+
+#     ga_instance = GA(
+#         num_generations=num_generations,
+#         num_parents_mating=num_parents_mating,
+#         fitness_func=fitness_func,
+#         sol_per_pop=sol_per_pop,
+#         num_genes=len(subset),
+#         gene_type=float,
+#         init_range_low=0,
+#         init_range_high=1,
+#         parent_selection_type=parent_selection_type,
+#         crossover_type=crossover_type,
+#         crossover_probability=crossover_probability,
+#         mutation_type=mutation_type,
+#         mutation_probability=mutation_probability,
+#         gene_space={'low' : 0, 'high' : 1},
+#         on_generation=on_generation
+#     )
+
+#     ga_instance.run()
+
+#     print("\n--- Exécution terminée ---")
+
+#     best_solution = list(ga_instance.best_solution()[0])
+#     mean_score_corrected = abs((gdf_special['density_s'] + np.dot(gdf_special[subset], best_solution)) * gdf_special['coeff'] - gdf_special['inf_vcub_s']).mean()
+
+#     return best_solution, best_fitness, mean_fitness, nb_selected, mean_score_selected, mean_score_corrected
 
 
 # Calcule le score de chaque maille
 def calculate_score(gdf_density : gpd.GeoDataFrame, subset, weigths) -> gpd.GeoDataFrame:
-    # weights = calculate_weights(gdf_density)
     print("Calcul du score des mailles...", end='')
     bonus = np.dot(gdf_density[subset], weigths)
     scores = (gdf_density['density_s'] + bonus) * gdf_density['coeff'] - gdf_density['inf_vcub_s']
@@ -165,7 +190,6 @@ def calculate_score(gdf_density : gpd.GeoDataFrame, subset, weigths) -> gpd.GeoD
 
 def preprocessing(ssthemes, vcub_config='media/base/vcub/vcub.shp'):
 
-    # gdf_vcub = gpd.read_file(f'media/saved/vcub_config/{vcub_config}').to_crs(2154)
     gdf_vcub = gpd.read_file(vcub_config).to_crs(2154)
     gdf_eqpub = gpd.read_file('media/base/eqpub').to_crs(2154)
     gdf_density = gpd.read_file('media/base/density').to_crs(2154)
@@ -183,14 +207,20 @@ def preprocessing(ssthemes, vcub_config='media/base/vcub/vcub.shp'):
 
 def calculate_ep_config(ep_selection, config_name, username):
 
-    nb_gen = 20 + 5 * len(ep_selection)
-
     gdf_density = preprocessing(ep_selection)
-    weights = calculate_weights(gdf_density, ep_selection, num_generations=nb_gen)
+    weights, best_fitness, mean_fitness, nb_selected, mean_score_selected, mean_score_corrected, num_generation, sol_per_pop, nb_ep = GeneticAlgorithm(gdf_density, ep_selection).run()
 
     data = {
         'ssthemes': ep_selection,
-        'weights': weights
+        'weights': weights,
+        'best_fitness' : best_fitness,
+        'mean_fitness' : mean_fitness,
+        'nb_selected' : nb_selected,
+        'mean_score_selected' : mean_score_selected,
+        'mean_score_corrected' : mean_score_corrected,
+        'num_generation' : num_generation,
+        'sol_per_pop' : sol_per_pop,
+        'nb_ep' : nb_ep
     }
 
     with open(f'media/saved/ep_config/{username}/{config_name}.json', 'w') as json_file:

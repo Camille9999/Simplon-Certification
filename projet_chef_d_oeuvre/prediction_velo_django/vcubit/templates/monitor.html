@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}
+Monitoring
+{% endblock %}
+
+{% block content %}
+
+<body data-username="{{ request.user.username }}"></body>
+
+<div class="content" style="height: calc(100vh - 148px);">
+
+  <div class="col-md-8 d-flex flex-column" style="height: 100%;">
+    <div class="form-group d-flex flex-column" style="flex-grow: 1;">
+      <div style="margin-bottom: 20px;">
+        <select class="form-control" id="epSelect" aria-label="ep_config">
+          {% for file in ep_files %}
+            {% if file.name|cut:".json" == selected_file %}
+              <option value="{{ file.path }}" selected>{{ file.name|cut:".json" }}</option>
+            {% elif file.name == "epDefault.json" %}
+              <option value="{{ file.path }}" selected>Défaut</option>
+            {% else %}
+              <option value="{{ file.path }}">{{ file.name|cut:".json" }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div style="width: 100%;">
+        <canvas id="fitnessChart"></canvas>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="d-flex justify-content-between" style="padding: 0 50px;">
+        <div class="box" id="surfaceBox" style="padding-top: 20px; flex-grow: 0;">
+          <b style="font-size: medium; white-space: nowrap;">Nombre de mailles sélectionnées</b>
+          <h3 id="nbSelected" class="statValue"></h3>
+        </div>
+        <div class="box" id="populationBox" style="padding-top: 20px; flex-grow: 0;">
+          <b style="font-size: medium; white-space: nowrap;">Nombre de générations</b>
+          <h3 id="nbGeneration" class="statValue"></h3>
+        </div>
+        <div class="box" id="medianBox" style="padding-top: 20px; flex-grow: 0;">
+          <b style="font-size: medium; white-space: nowrap;">Taille de la population initiale</b>
+          <h3 id="nbPopulation" class="statValue"></h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4 d-flex flex-column" style="height: 100%;">
+    <div class="form-group">
+      <div class="d-flex justify-content-between">
+        <div class="box" id="scoreB">
+          <b style="font-size: small;">Score moyen des mailles sélectionnées sans correctif</b>
+          <h3 id="meanScoreB" class="statValue"></h3>
+        </div>
+        <div class="box" id="scoreA">
+          <b style="font-size: small;">Score moyen des mailles sélectionnées avec correctif</b>
+          <h3 id="meanScoreA" class="statValue"></h3>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <table id="jsonTable" class="table">
+        <thead>
+          <tr>
+            <th scope="col" style="width: 25%; white-space: nowrap;">Sous-thème</th>
+            <th scope="col" style="width: 25%">Nom</th>
+            <th scope="col" style="width: 25%">Nombre</th>
+            <th scope="col" style="width: 25%">Poids</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+  var fitnessChart;
+
+  function loadJson(value) {
+    fetch(value)
+      .then(response => response.json())
+      .then(data => {
+        if (fitnessChart != undefined) {
+          fitnessChart.destroy();
+        }
+        var ctx = document.getElementById('fitnessChart').getContext('2d');
+        fitnessChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: Array.from({length: data.best_fitness.length}, (_, i) => i + 1),
+            datasets: [{
+              label: 'Best Fitness',
+              data: data.best_fitness,
+              borderColor: 'rgb(255, 99, 132)',
+              fill: false
+            }, {
+              label: 'Mean Fitness',
+              data: data.mean_fitness,
+              borderColor: 'rgb(75, 192, 192)',
+              fill: false
+            }]
+          },
+          options: {
+            scales: {
+              x: {
+                display: true,
+                title: {
+                  display: true,
+                  text: 'Génération'
+                }
+              },
+              y: {
+                display: true,
+                title: {
+                  display: true,
+                  text: 'Fitness'
+                }
+              }
+            }
+          }
+        });
+
+        var nbSelected = data.nb_selected;
+        var nbGeneration = data.best_fitness.length;
+        var nbPopulation = data.sol_per_pop;
+        var meanScoreB = (-data.mean_score_selected).toFixed(4);
+        var meanScoreA = (-data.mean_score_corrected).toFixed(4);
+        document.getElementById('nbSelected').innerHTML = '<strong style="color: rgb(30, 135, 200); font-size: 35px;">' + nbSelected + '</strong>';
+        document.getElementById('nbGeneration').innerHTML = '<strong style="color: rgb(30, 135, 200); font-size: 35px;">' + nbGeneration + '</strong>';
+        document.getElementById('nbPopulation').innerHTML = '<strong style="color: rgb(30, 135, 200); font-size: 35px;"">' + nbPopulation + '</strong>';
+        document.getElementById('meanScoreB').innerHTML = '<strong style="color: rgb(30, 135, 200);">' + meanScoreB + '</strong>';
+        document.getElementById('meanScoreA').innerHTML = '<strong style="color: rgb(30, 135, 200);">' + meanScoreA + '</strong>';
+
+        var table = document.getElementById('jsonTable').getElementsByTagName('tbody')[0];
+        table.innerHTML = "";
+        fetch('/media/base/eqpub.json')
+          .then(response => response.json())
+          .then(ep_json => {
+            for (var i = 0; i < data.ssthemes.length; i++) {
+              var row = table.insertRow();
+              var cell1 = row.insertCell(0);
+              var cell2 = row.insertCell(1);
+              var cell3 = row.insertCell(2);
+              var cell4 = row.insertCell(3);
+              cell1.innerHTML = data.ssthemes[i];
+              cell2.innerHTML = ep_json[data.ssthemes[i][0]]['ssthemes'][data.ssthemes[i]];
+              cell3.innerHTML = data.nb_ep[i];
+              cell4.innerHTML = '<strong style="color: rgb(30, 135, 200)">' + data.weights[i].toFixed(4) + '</strong>';
+            }
+          })
+      }).catch(error => console.error('Error:', error));
+  }
+
+  $(document).ready(function() {
+    loadJson($("#epSelect").val());
+
+    $("#epSelect").change(function() {
+      loadJson($(this).val());
+    });
+  });
+
+</script>
+
+{% endblock %}

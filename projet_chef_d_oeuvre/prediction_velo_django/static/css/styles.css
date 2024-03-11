@@ -174,3 +174,9 @@ body, .container-fluid {
 .statValue {
   margin: 8px 0;
 }
+
+
+#jsonTable th, #jsonTable td {
+  text-align: center;
+  vertical-align: middle;
+}
