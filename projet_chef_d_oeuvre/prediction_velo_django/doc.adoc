@@ -7,7 +7,6 @@
 - feedback problem signup/login
 - feedback boutton Enregistrer (config_vcub)
 - gestion fichiers (suppression)
-- icones pages
 
 
 * P2
@@ -31,3 +30,4 @@
 - front visualisation
 - KPI/charts visualisation
 - front config_ep
+- icones pages

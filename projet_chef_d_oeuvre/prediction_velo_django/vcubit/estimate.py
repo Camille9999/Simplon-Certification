@@ -6,10 +6,6 @@ from sklearn.preprocessing import MinMaxScaler
 from math import pi, acos, sqrt
 import json
 import folium
-from pygad import GA
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import seaborn as sns
 
 from .genetic_algorithm import GeneticAlgorithm
 from .gdf_to_shp import gdf_to_shp_zip
@@ -103,79 +99,6 @@ def eqpub_in_polygon(gdf_density : gpd.GeoDataFrame,
     print(" Terminé")
     return gdf_density_with_eqpub
 
-
-# Calcule les poids associés aux catégories de eqpub sélectionnés
-# def calculate_weights(gdf_density : gpd.GeoDataFrame,
-#                       subset, num_generations=50, sol_per_pop=200,
-#                       num_parents_mating=50, parent_selection_type='sus',
-#                       crossover_type='uniform', crossover_probability=0.9,
-#                       mutation_type='adaptive', mutation_probability=[0.25, 0.05]) -> list:
-
-#     gdf_special = gdf_density[(gdf_density['difference'] < 0) & (gdf_density[subset].sum(axis=1) != 0)]
-#     threshold = gdf_special['difference'].describe()['50%']
-#     gdf_special = gdf_special[gdf_special['difference'] <= threshold]
-
-#     nb_selected = len(gdf_special)
-#     mean_score_selected = abs((gdf_special['density_s']) * gdf_special['coeff'] - gdf_special['inf_vcub_s']).mean()
-
-#     best_fitness, mean_fitness = [], []
-#     ga_instance.convergence_counter = 0
-#     ga_instance.last_generation_fitness = None
-
-#     def fitness_func(ga_instance, solution, solution_idx) -> float:
-#         bonus = np.dot(gdf_special[subset], solution)
-#         score = (gdf_special['density_s'] + bonus) * gdf_special['coeff'] - gdf_special['inf_vcub_s']
-#         fitness = 1 / abs(score).mean()
-#         return fitness
-
-#     def on_generation(ga_instance):
-#         gen = ga_instance.generations_completed
-#         print(f'Progress: {round(100 * gen / num_generations)}%\n{gen}/{num_generations} generations completed', end='')
-#         if gen != num_generations: print('\033[F\033[F')
-#         current_fitness = ga_instance.best_solution()[1]
-#         best_fitness.append(1 / current_fitness)
-#         mean_fitness = sum(ga_instance.last_generation_fitness) / len(ga_instance.last_generation_fitness)
-#         mean_fitness.append(1 / mean_fitness)
-
-#         if abs(current_fitness - ga_instance.last_generation_fitness) < 0.01:
-#             ga_instance.convergence_counter += 1
-#         else:
-#             ga_instance.convergence_counter = 0
-
-#         if ga_instance.convergence_counter > 10:
-#             ga_instance.stop()
-
-#         ga_instance.last_generation_fitness = current_fitness
-
-
-#     print("--- Algorithme génétique en cours d'exécution ---")
-
-#     ga_instance = GA(
-#         num_generations=num_generations,
-#         num_parents_mating=num_parents_mating,
-#         fitness_func=fitness_func,
-#         sol_per_pop=sol_per_pop,
-#         num_genes=len(subset),
-#         gene_type=float,
-#         init_range_low=0,
-#         init_range_high=1,
-#         parent_selection_type=parent_selection_type,
-#         crossover_type=crossover_type,
-#         crossover_probability=crossover_probability,
-#         mutation_type=mutation_type,
-#         mutation_probability=mutation_probability,
-#         gene_space={'low' : 0, 'high' : 1},
-#         on_generation=on_generation
-#     )
-
-#     ga_instance.run()
-
-#     print("\n--- Exécution terminée ---")
-
-#     best_solution = list(ga_instance.best_solution()[0])
-#     mean_score_corrected = abs((gdf_special['density_s'] + np.dot(gdf_special[subset], best_solution)) * gdf_special['coeff'] - gdf_special['inf_vcub_s']).mean()
-
-#     return best_solution, best_fitness, mean_fitness, nb_selected, mean_score_selected, mean_score_corrected
 
 
 # Calcule le score de chaque maille
@@ -276,15 +199,6 @@ def estimate_coverage(vcub_config, ep_config, username):
 
     m.save(f'{shp_folder_path}/{name}.html')
 
-    # plt.figure()
-    # sns.histplot(gdf_density_filtered.score, fill=True, kde=True)
-    # plt.axvline(gdf_density_filtered.score.median(), color='red', label=f'médiane : {round(gdf_density_filtered.score.median(), 4)}')
-    # plt.legend()
-    # plt.grid()
-    # plt.tight_layout()
-    # plt.savefig(f'{shp_folder_path}/hist.png')
-    # plt.close()
-
     def calc_stats(mini, maxi):
         pct = 100 * gdf_density_filtered[(gdf_density_filtered.score > mini) & (gdf_density_filtered.score < maxi)].score.count() / len(gdf_density_filtered)
         return round(pct, 2)
@@ -300,22 +214,6 @@ def estimate_coverage(vcub_config, ep_config, username):
         "pctPop" : round(100 * (gdf_density_filtered.density * gdf_density_filtered.surface / 1E06).sum() / (gdf_density.density * gdf_density.surface / 1E06).sum(), 2),
         "medianScore" : round(gdf_density_filtered.score.median(), 4)
     }
-
-    labels = ['Très bonne', 'Bonne', 'Assez bonne', 'Moyenne', 'Insuffisante', 'Très insuffisante']
-    colors = ['green', 'limegreen', 'yellow', 'orange', 'red', 'darkred']
-    ranges = ['score ≤ 0', '0 < score ≤ 0.1', '0.1 < score ≤ 0.2', '0.2 < score ≤ 0.3', '0.3 < score ≤ 0.5', 'score > 0.5']
-    patches = [mpatches.Patch(color=colors[i], label=ranges[i]) for i in range(len(labels))]
-    values = [stats[key] for key in list(stats.keys())[:6]]
-
-    plt.figure(figsize=(6, 3))
-    plt.barh(labels, values, color=colors)
-    plt.xlim(0, max(50, max(values)))
-    plt.xlabel('%')
-    plt.legend(handles=patches)
-    plt.gca().invert_yaxis()
-    plt.tight_layout()
-    plt.savefig(f'{shp_folder_path}/bars.png')
-    plt.close()
 
     with open(f'{shp_folder_path}/stats.json', 'w') as f:
         json.dump(stats, f)

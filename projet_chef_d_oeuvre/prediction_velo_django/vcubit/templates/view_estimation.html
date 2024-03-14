@@ -66,7 +66,7 @@ Visualiser une estimation
 
     <div class="form-group d-flex flex-column" style="padding-top: 12px; padding-bottom: 0;">
       <label class="label1" style="margin-bottom: 5px;">Couverture des mailles dans le champ d'action</label>
-      <img id="bars" alt="bars">
+      <canvas id="bars"></canvas>
     </div>
 
   </div>
@@ -78,6 +78,8 @@ Visualiser une estimation
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script src="https://unpkg.com/shapefile@0.6.3"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 <script>
 
@@ -122,6 +124,62 @@ function updatePage(selectedFile) {
     document.getElementById('surfaceValue').style.color = getSurfaceColor(surfaceValue);
     document.getElementById('populationValue').style.color = getPopulationColor(populationValue);
     document.getElementById('medianValue').style.color = getMedianColor(medianValue);
+
+    var ctx = document.getElementById('bars').getContext('2d');
+    var chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Très bonne', 'Bonne', 'Assez bonne', 'Moyenne', 'Insuffisante', 'Très insuffisante'],
+        datasets: [{
+          data: [data.tbon, data.bon, data.abon, data.moyen, data.insuf, data.tinsuf],
+          backgroundColor: [
+            'rgba(0, 150, 0, 0.7)',
+            'rgba(125, 205, 50, 0.7)',
+            'rgba(255, 215, 0, 0.7)',
+            'rgba(255, 165, 0, 0.7)',
+            'rgba(255, 69, 0, 0.7)',
+            'rgba(255, 0, 0, 0.7)'
+          ],
+          borderColor: [
+            'rgba(0, 150, 0, 1)',
+            'rgba(125, 205, 50, 1)',
+            'rgba(255, 215, 0, 1)',
+            'rgba(255, 165, 0, 1)',
+            'rgba(255, 69, 0, 1)',
+            'rgba(255, 0, 0, 1)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        scales: {
+          x: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: '%'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              title: function(tooltipItem) {
+                var scoreLabels = ['score ≤ 0', '0 < score ≤ 0.1', '0.1 < score ≤ 0.2', '0.2 < score ≤ 0.3', '0.3 < score ≤ 0.5', 'score > 0.5'];
+                return scoreLabels[tooltipItem[0].dataIndex];
+              },
+              label: function(tooltipItem) {
+                return tooltipItem.raw + '%';
+              }
+            }
+          }
+        }
+      }
+    });
   });
 }
 
