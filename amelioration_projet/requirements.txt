@@ -13,3 +13,5 @@ spacy
 pyarrow
 textstat
 textblob
+pytest
+ipytest
